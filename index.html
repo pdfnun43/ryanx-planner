@@ -1,0 +1,393 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover">
+<title>Ryan'x Planner</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
+</head>
+<body>
+
+<!-- ===== กำลังโหลด ===== -->
+<div id="loading" class="screen center">
+  <div class="spinner"></div>
+  <div class="muted">กำลังโหลด…</div>
+</div>
+
+<!-- ===== หน้าล็อกอิน ===== -->
+<div id="loginScreen" class="screen center hidden">
+  <div class="login-card">
+    <div class="login-logo">PF</div>
+    <h1 class="login-title">RYAN'X PLANNER</h1>
+    <p class="muted login-sub">เข้าสู่ระบบเพื่อใช้งานแพลนเนอร์ส่วนตัว</p>
+    <label class="field-label">อีเมล</label>
+    <input id="loginEmail" class="text-input" type="email" autocomplete="username">
+    <label class="field-label">รหัสผ่าน</label>
+    <input id="loginPassword" class="text-input" type="password" autocomplete="current-password">
+    <div id="loginErr" class="login-err"></div>
+    <button id="loginBtn" class="btn" type="button">เข้าสู่ระบบ</button>
+  </div>
+</div>
+
+<!-- ===== แอปหลัก ===== -->
+<div id="app" class="hidden">
+  <aside class="sidebar">
+    <div class="sidebar-logo">PF</div>
+    <nav class="sidebar-nav">
+      <button class="sidebar-btn view-switch-btn on" data-view="daily" type="button" title="รายวัน">◐</button>
+      <button class="sidebar-btn view-switch-btn" data-view="weekly" type="button" title="รายสัปดาห์">▦</button>
+      <button class="sidebar-btn view-switch-btn" data-view="content" type="button" title="คอนเทนต์">✎</button>
+      <button class="sidebar-btn view-switch-btn" data-view="challenge" type="button" title="ท้าทาย">◆</button>
+    </nav>
+    <div class="sidebar-spacer"></div>
+    <button id="plantBtn" class="sidebar-btn plant-btn" type="button" title="ต้นไม้ของฉัน">🌱</button>
+    <button id="settingsBtn" class="sidebar-btn" type="button" title="แก้ไขรายการ">⚙</button>
+  </aside>
+
+  <div class="main-col">
+    <header class="header-panel">
+      <div class="header-top">
+        <div>
+          <p class="eyebrow-inv">P FAM · แพลนเนอร์</p>
+          <h1 class="app-title-inv">RYAN'X PLANNER</h1>
+        </div>
+        <div class="header-top-right">
+          <div class="viewtabs-pill">
+            <button class="vtab-pill view-switch-btn on" data-view="daily" type="button">รายวัน</button>
+            <button class="vtab-pill view-switch-btn" data-view="weekly" type="button">รายสัปดาห์</button>
+            <button class="vtab-pill view-switch-btn" data-view="content" type="button">คอนเทนต์</button>
+            <button class="vtab-pill view-switch-btn" data-view="challenge" type="button">ท้าทาย</button>
+          </div>
+          <button id="quickEventBtn" class="btn small quick-event-btn" type="button">+ กิจกรรมด่วน</button>
+        </div>
+      </div>
+      <p id="quoteOfDay" class="quote-of-day"></p>
+      <div id="headerStats" class="header-stats">
+        <div class="stat-item">
+          <span class="stat-label">สิ่งสำคัญวันนี้</span>
+          <span id="statPriorities" class="stat-value">0/3</span>
+          <div class="stat-bar"><div id="statPrioritiesBar" class="stat-bar-fill"></div></div>
+        </div>
+        <div class="stat-item">
+          <span class="stat-label">กิจวัตร</span>
+          <span id="statHabits" class="stat-value">—</span>
+          <div class="stat-bar"><div id="statHabitsBar" class="stat-bar-fill"></div></div>
+        </div>
+      </div>
+    </header>
+
+    <main class="content-panel">
+      <!-- ================= DAILY VIEW ================= -->
+      <div id="dailyView">
+        <div class="daily-shell">
+          <div class="daily-left">
+            <div class="card mini-cal">
+              <div class="mini-cal-head">
+                <button id="miniCalPrev" class="mc-nav" type="button">‹</button>
+                <span id="miniCalLabel" class="mc-label"></span>
+                <button id="miniCalNext" class="mc-nav" type="button">›</button>
+              </div>
+              <div class="mini-cal-dow"><span>จ</span><span>อ</span><span>พ</span><span>พฤ</span><span>ศ</span><span>ส</span><span>อา</span></div>
+              <div id="miniCalGrid" class="mini-cal-grid"></div>
+            </div>
+
+            <div class="card">
+              <p class="card-label">3 สิ่งสำคัญที่สุดของวันนี้</p>
+              <div id="priorityList" class="priority-list"></div>
+              <div id="carryOverList" class="carryover-list"></div>
+            </div>
+          </div>
+
+          <div class="daily-main">
+            <div class="card">
+              <div class="day-nav">
+                <button id="dayPrev" class="navbtn" type="button">‹</button>
+                <div class="daylabel-wrap">
+                  <span id="dayLabel" class="daylabel"></span>
+                  <button id="dayToday" class="link-btn small" type="button">วันนี้</button>
+                </div>
+                <button id="dayNext" class="navbtn" type="button">›</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="daily-row-2">
+          <div class="card">
+            <p class="card-label">To-Do List วันนี้</p>
+            <div id="todoList" class="todo-list"></div>
+            <input id="todoInput" class="area-flat quickcapture-input" type="text" placeholder="เพิ่มสิ่งที่ต้องทำแล้วกด Enter…" autocomplete="off">
+          </div>
+          <div class="card">
+            <p class="card-label">กิจกรรม / นัดหมาย</p>
+            <div id="eventList" class="event-list"></div>
+            <div class="event-add-row">
+              <input id="eventDate" class="text-input event-date-input" type="date" title="วันที่ (ค่าเริ่มต้น = วันที่กำลังดูอยู่)">
+              <input id="eventTime" class="text-input event-time-input" type="time">
+              <input id="eventTitle" class="text-input" type="text" placeholder="ชื่อกิจกรรม/นัดหมาย แล้วกด Enter…" autocomplete="off">
+            </div>
+            <p class="muted small-note event-hint">เลือกวันที่ล่วงหน้าได้ ไม่ต้องย้ายไปหน้าวันนั้นก่อน</p>
+          </div>
+        </div>
+
+        <div class="card">
+          <p class="card-label">Brain Dump — จดอะไรก็ได้ที่แทรกเข้ามาระหว่างวัน</p>
+          <textarea id="brainDump" class="area-flat braindump-area" placeholder="พิมพ์อะไรก็ได้ตรงนี้…"></textarea>
+        </div>
+
+        <div class="card">
+          <p class="card-label">กิจวัตรประจำวัน</p>
+          <div id="habitList" class="habit-grid"></div>
+        </div>
+
+        <div id="dailyChallengeCard" class="card hidden">
+          <p class="card-label">ท้าทายที่กำลังทำอยู่</p>
+          <div id="dailyChallengeList" class="daily-challenge-list"></div>
+        </div>
+
+        <div class="daily-row-2">
+          <div class="card">
+            <p class="card-label">ลิงก์ด่วน</p>
+            <div id="quickLinksList" class="quick-links-list"></div>
+          </div>
+          <div class="card">
+            <p class="card-label">คลังไอเดียคอนเทนต์</p>
+            <input id="quickIdea" class="area-flat quickcapture-input" type="text" placeholder="พิมพ์ไอเดียแล้วกด Enter…" autocomplete="off">
+            <div id="ideaBankList" class="idea-bank-list"></div>
+            <div id="pipelineSnapshot" class="pipeline-snapshot"></div>
+          </div>
+        </div>
+
+        <div id="dailySaveState" class="save-state muted">&nbsp;</div>
+      </div>
+
+      <!-- ================= WEEKLY VIEW ================= -->
+      <div id="weeklyView" class="hidden">
+        <div class="card">
+          <div class="day-nav">
+            <button id="weekPrev" class="navbtn" type="button">‹</button>
+            <div class="daylabel-wrap">
+              <span id="weekLabel" class="daylabel"></span>
+              <button id="weekToday" class="link-btn small" type="button">สัปดาห์นี้</button>
+            </div>
+            <button id="weekNext" class="navbtn" type="button">›</button>
+          </div>
+          <div id="weekStrip" class="week-strip"></div>
+        </div>
+
+        <div class="daily-row-2">
+          <div class="card">
+            <p class="card-label">ทบทวนสัปดาห์นี้</p>
+            <textarea id="weekReflection" class="area-flat braindump-area small" placeholder="สัปดาห์นี้เป็นยังไงบ้าง…"></textarea>
+          </div>
+          <div class="card">
+            <p class="card-label">เป้าหมายสัปดาห์หน้า</p>
+            <textarea id="weekGoals" class="area-flat braindump-area small" placeholder="อยากโฟกัสอะไรต่อ…"></textarea>
+          </div>
+        </div>
+
+        <div class="card">
+          <p class="card-label">คอนเทนต์ที่กำหนดโพสต์สัปดาห์นี้</p>
+          <div id="weekPipelineSummary" class="pipeline-snapshot"></div>
+          <div id="weekScheduledList" class="scheduled-list"></div>
+        </div>
+
+        <div id="weekSaveState" class="save-state muted">&nbsp;</div>
+      </div>
+
+      <!-- ================= CONTENT VIEW ================= -->
+      <div id="contentView" class="hidden">
+        <div class="card">
+          <div class="content-toolbar">
+            <input id="contentSearch" class="search" type="search" placeholder="ค้นหาไอเดียคอนเทนต์…" autocomplete="off">
+            <div id="channelChips" class="chips"></div>
+            <button id="addIdeaBtn" class="btn small" type="button">+ เพิ่มไอเดีย</button>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="day-nav">
+            <button id="calPrev" class="navbtn" type="button">‹</button>
+            <span id="calLabel" class="daylabel"></span>
+            <button id="calNext" class="navbtn" type="button">›</button>
+          </div>
+          <div id="calGrid" class="cal-grid"></div>
+        </div>
+
+        <div class="card">
+          <p class="card-label">Pipeline การผลิตคอนเทนต์</p>
+          <div id="pipelineBoard" class="pipeline-board"></div>
+        </div>
+      </div>
+
+      <!-- ================= CHALLENGE VIEW ================= -->
+      <div id="challengeView" class="hidden">
+        <div class="card">
+          <p class="card-label-row">
+            <span class="card-label">ท้าทายที่กำลังทำอยู่</span>
+            <button id="addChallengeBtn" class="link-btn small" type="button">+ สร้าง Challenge</button>
+          </p>
+          <div id="activeChallengeList" class="challenge-list"></div>
+        </div>
+        <div class="card">
+          <p class="card-label">ประวัติ Challenge ที่ผ่านมา</p>
+          <div id="pastChallengeList"></div>
+        </div>
+      </div>
+    </main>
+  </div>
+</div>
+
+<!-- ===== Toast ===== -->
+<div id="toast" class="toast hidden"></div>
+
+<!-- ===== Modal: แก้ไขไอเดียคอนเทนต์ ===== -->
+<div id="ideaOverlay" class="overlay hidden">
+  <div class="modal">
+    <h3 id="ideaModalTitle">ไอเดียคอนเทนต์</h3>
+
+    <label class="field-label">หัวข้อ</label>
+    <input id="ideaTitle" class="text-input" type="text" placeholder="เช่น รีวิว Shiopan หน้าใหม่">
+
+    <label class="field-label">รายละเอียด (ถ้ามี)</label>
+    <textarea id="ideaNotes" class="text-input" rows="3"></textarea>
+
+    <div class="modal-row">
+      <div>
+        <label class="field-label">ช่องทาง</label>
+        <select id="ideaChannel" class="text-input"></select>
+      </div>
+      <div>
+        <label class="field-label">สถานะ</label>
+        <select id="ideaStage" class="text-input">
+          <option value="Idea">Idea</option>
+          <option value="Shoot">Shoot</option>
+          <option value="Edit">Edit</option>
+          <option value="Post">Post</option>
+        </select>
+      </div>
+    </div>
+
+    <label class="field-label">วันที่กำหนดโพสต์ (ถ้ามี)</label>
+    <input id="ideaScheduled" class="text-input" type="date">
+
+    <div id="ideaErr" class="modal-err"></div>
+
+    <div class="modal-actions modal-actions-3">
+      <button id="ideaDelete" class="btn btn-ghost hidden" type="button">ลบ</button>
+      <button id="ideaCancel" class="btn btn-ghost" type="button">ยกเลิก</button>
+      <button id="ideaSave" class="btn" type="button">บันทึก</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===== Modal: แก้ไขรายการ (Settings) ===== -->
+<div id="settingsOverlay" class="overlay hidden">
+  <div class="modal settings-modal">
+    <h3>แก้ไขรายการ</h3>
+    <p class="muted small-note">แก้ชื่อ/เวลาได้อิสระ ตรงนี้ไม่กระทบข้อมูลย้อนหลัง</p>
+
+    <div class="settings-group">
+      <p class="card-label">กิจวัตรประจำวัน (คงที่ 3 ข้อ)</p>
+      <div id="settingsHabits" class="settings-list"></div>
+    </div>
+
+    <div class="settings-group">
+      <p class="card-label-row">
+        <span class="card-label">ลิงก์ด่วน</span>
+        <button id="quickLinkAddBtn" class="link-btn small" type="button">+ เพิ่มลิงก์</button>
+      </p>
+      <div id="settingsQuickLinks" class="settings-list"></div>
+    </div>
+
+    <div class="settings-group">
+      <p class="card-label-row">
+        <span class="card-label">ช่องทางคอนเทนต์</span>
+        <button id="ccAddBtn" class="link-btn small" type="button">+ เพิ่มช่องทาง</button>
+      </p>
+      <div id="settingsContentChannels" class="settings-list"></div>
+    </div>
+
+    <div id="settingsErr" class="modal-err"></div>
+
+    <div class="modal-actions">
+      <button id="settingsCancel" class="btn btn-ghost" type="button">ยกเลิก</button>
+      <button id="settingsSave" class="btn" type="button">บันทึก</button>
+    </div>
+
+    <div class="settings-logout-row">
+      <button id="logoutBtn" class="link-btn small" type="button">ออกจากระบบ</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===== Modal: ต้นไม้ของฉัน ===== -->
+<div id="plantOverlay" class="overlay hidden">
+  <div class="modal plant-modal">
+    <div class="plant-emoji" id="plantEmoji">🌱</div>
+    <h3 id="plantStageLabel" class="plant-stage-label">เมล็ดพันธุ์</h3>
+    <p id="plantDaysText" class="plant-days-text">มาเยี่ยมแล้ว 0 วัน</p>
+    <p id="plantNextText" class="muted plant-next-text"></p>
+    <p class="muted small-note plant-hint">แค่เปิดแอปในแต่ละวันก็นับให้เลย ไม่ต้องทำอะไรเพิ่ม ขาดไปกี่วันต้นไม้ก็ไม่มีวันเหี่ยว</p>
+    <div class="modal-actions" style="justify-content:center;">
+      <button id="plantClose" class="btn" type="button">ปิด</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===== Modal: เพิ่มกิจกรรมด่วน ===== -->
+<div id="quickEventOverlay" class="overlay hidden">
+  <div class="modal">
+    <h3>เพิ่มกิจกรรมด่วน</h3>
+
+    <label class="field-label">ชื่อกิจกรรม</label>
+    <input id="quickEventTitle" class="text-input" type="text" placeholder="ชื่อกิจกรรม/นัดหมาย">
+
+    <div class="modal-row">
+      <div>
+        <label class="field-label">วันที่</label>
+        <input id="quickEventDate" class="text-input" type="date">
+      </div>
+      <div>
+        <label class="field-label">เวลา (ถ้ามี)</label>
+        <input id="quickEventTime" class="text-input" type="time">
+      </div>
+    </div>
+
+    <div id="quickEventErr" class="modal-err"></div>
+
+    <div class="modal-actions">
+      <button id="quickEventCancel" class="btn btn-ghost" type="button">ยกเลิก</button>
+      <button id="quickEventSave" class="btn" type="button">เพิ่ม</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===== Modal: สร้าง Challenge ===== -->
+<div id="challengeOverlay" class="overlay hidden">
+  <div class="modal">
+    <h3>สร้าง Challenge ใหม่</h3>
+
+    <label class="field-label">ชื่อ Challenge</label>
+    <input id="challengeName" class="text-input" type="text" placeholder="เช่น ออกกำลังกาย 30 วัน">
+
+    <label class="field-label">ระยะเวลา (วัน)</label>
+    <input id="challengeDuration" class="text-input" type="number" min="1" value="30">
+
+    <div id="challengeErr" class="modal-err"></div>
+
+    <div class="modal-actions">
+      <button id="challengeCancel" class="btn btn-ghost" type="button">ยกเลิก</button>
+      <button id="challengeSave" class="btn" type="button">สร้าง</button>
+    </div>
+  </div>
+</div>
+
+<script src="config.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
