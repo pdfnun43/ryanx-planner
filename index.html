@@ -42,9 +42,9 @@
       <button class="sidebar-btn view-switch-btn" data-view="weekly" type="button" title="รายสัปดาห์">▦</button>
       <button class="sidebar-btn view-switch-btn" data-view="content" type="button" title="คอนเทนต์">✎</button>
       <button class="sidebar-btn view-switch-btn" data-view="challenge" type="button" title="ท้าทาย">◆</button>
+      <button class="sidebar-btn view-switch-btn" data-view="mood" type="button" title="อารมณ์">☺</button>
     </nav>
     <div class="sidebar-spacer"></div>
-    <button id="plantBtn" class="sidebar-btn plant-btn" type="button" title="ต้นไม้ของฉัน">🌱</button>
     <button id="settingsBtn" class="sidebar-btn" type="button" title="แก้ไขรายการ">⚙</button>
   </aside>
 
@@ -61,6 +61,7 @@
             <button class="vtab-pill view-switch-btn" data-view="weekly" type="button">รายสัปดาห์</button>
             <button class="vtab-pill view-switch-btn" data-view="content" type="button">คอนเทนต์</button>
             <button class="vtab-pill view-switch-btn" data-view="challenge" type="button">ท้าทาย</button>
+            <button class="vtab-pill view-switch-btn" data-view="mood" type="button">อารมณ์</button>
           </div>
           <button id="quickEventBtn" class="btn small quick-event-btn" type="button">+ กิจกรรมด่วน</button>
         </div>
@@ -91,11 +92,6 @@
           </div>
           <div class="progress-track"><div id="progressFill" class="progress-fill" style="width:0%"></div></div>
           <p id="progressToday" class="progress-today"></p>
-        </div>
-
-        <div class="card">
-          <p class="card-label">Check-in time: วันนี้คุณรู้สึกยังไง</p>
-          <div id="moodGrid" class="mood-grid"></div>
         </div>
 
         <div class="daily-shell">
@@ -252,6 +248,25 @@
           <div id="pastChallengeList"></div>
         </div>
       </div>
+
+      <!-- ================= MOOD VIEW ================= -->
+      <div id="moodView" class="hidden">
+        <div class="card">
+          <p class="eyebrow">Check-in</p>
+          <p class="daylabel" style="text-align:left;margin:0 0 18px;">วันนี้คุณรู้สึกยังไง</p>
+          <div id="moodCheckinGrid" class="mood-grid mood-grid-checkin"></div>
+        </div>
+
+        <div class="card">
+          <p class="card-label">Mood Analysis</p>
+          <div class="day-nav" style="justify-content:flex-start;gap:10px;margin-bottom:8px;">
+            <button id="moodWeekPrev" class="navbtn" type="button">‹</button>
+            <span id="moodWeekLabel" class="daylabel" style="font-size:14px;"></span>
+            <button id="moodWeekNext" class="navbtn" type="button">›</button>
+          </div>
+          <svg id="moodAnalysisSvg" viewBox="0 0 700 190" style="width:100%;height:auto;"></svg>
+        </div>
+      </div>
     </main>
   </div>
 </div>
@@ -335,20 +350,6 @@
 
     <div class="settings-logout-row">
       <button id="logoutBtn" class="link-btn small" type="button">ออกจากระบบ</button>
-    </div>
-  </div>
-</div>
-
-<!-- ===== Modal: ต้นไม้ของฉัน ===== -->
-<div id="plantOverlay" class="overlay hidden">
-  <div class="modal plant-modal">
-    <div class="plant-emoji" id="plantEmoji">🌱</div>
-    <h3 id="plantStageLabel" class="plant-stage-label">เมล็ดพันธุ์</h3>
-    <p id="plantDaysText" class="plant-days-text">มาเยี่ยมแล้ว 0 วัน</p>
-    <p id="plantNextText" class="muted plant-next-text"></p>
-    <p class="muted small-note plant-hint">แค่เปิดแอปในแต่ละวันก็นับให้เลย ไม่ต้องทำอะไรเพิ่ม ขาดไปกี่วันต้นไม้ก็ไม่มีวันเหี่ยว</p>
-    <div class="modal-actions" style="justify-content:center;">
-      <button id="plantClose" class="btn" type="button">ปิด</button>
     </div>
   </div>
 </div>

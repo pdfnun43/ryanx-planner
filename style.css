@@ -12,7 +12,7 @@
   --panel-soft:#9BC9EC;
   --panel-text:#FFFFFF;
   --card:#FFFFFF;
-  --card-soft:rgba(255,255,255,.68);
+  --card-soft:#F6F4FB;
   --ink:#2E2A4D;
   --ink-soft:#6B6690;
   --line:#E6E2F2;
@@ -26,24 +26,18 @@
   --radius:18px;
   --radius-sm:10px;
 
-  /* glass */
-  --glass-bg:rgba(255,255,255,.52);
-  --glass-border:rgba(255,255,255,.7);
-  --glass-shadow:0 8px 32px rgba(127,185,230,.2), inset 0 1px 0 rgba(255,255,255,.55);
-  --glass-blur:18px;
-  --panel-glass-bg:rgba(127,185,230,.68);
-  --panel-glass-border:rgba(255,255,255,.35);
+  /* flat/solid surfaces (no gradient, no glass blur) */
+  --glass-bg:#FFFFFF;
+  --glass-border:#ECE8F6;
+  --glass-shadow:var(--shadow);
+  --glass-blur:0px;
+  --panel-glass-bg:var(--panel);
+  --panel-glass-border:transparent;
 }
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
 html,body{margin:0;padding:0;}
 body{
-  background:
-    radial-gradient(circle at 12% 18%, rgba(249,139,169,.45), transparent 42%),
-    radial-gradient(circle at 88% 12%, rgba(127,185,230,.5), transparent 42%),
-    radial-gradient(circle at 75% 82%, rgba(214,190,234,.45), transparent 45%),
-    radial-gradient(circle at 15% 85%, rgba(244,215,122,.4), transparent 40%),
-    var(--bg);
-  background-attachment:fixed;
+  background:var(--bg);
   color:var(--ink);
   font-family:'Kanit',sans-serif;
   min-height:100vh;
@@ -492,13 +486,12 @@ body{
 
 /* ===== overlay / modal ===== */
 .overlay{
-  position:fixed;inset:0;background:rgba(43,43,38,.35);-webkit-backdrop-filter:blur(4px);backdrop-filter:blur(4px);
+  position:fixed;inset:0;background:rgba(43,43,38,.4);
   display:flex;align-items:center;justify-content:center;padding:20px;z-index:50;
 }
 .modal{
-  background:rgba(255,255,255,.78);border:1px solid var(--glass-border);
-  -webkit-backdrop-filter:blur(24px);backdrop-filter:blur(24px);
-  border-radius:20px;box-shadow:var(--glass-shadow);padding:24px 22px;
+  background:var(--card);border:1px solid var(--glass-border);
+  border-radius:20px;box-shadow:var(--shadow);padding:24px 22px;
   width:100%;max-width:440px;max-height:88vh;overflow:auto;
 }
 .modal h3{font-family:'Kanit',sans-serif;font-size:19px;margin:0 0 6px;}
@@ -518,14 +511,6 @@ textarea.text-input{resize:vertical;line-height:1.6;}
 .modal-actions{display:flex;gap:10px;justify-content:flex-end;margin-top:18px;}
 .modal-actions-3{justify-content:space-between;}
 .modal-actions-3 .btn-ghost:first-child{margin-right:auto;color:var(--accent);}
-
-.plant-modal{max-width:340px;text-align:center;}
-.plant-emoji{font-size:64px;line-height:1;margin-bottom:10px;}
-.plant-stage-label{margin:0 0 4px;}
-.plant-days-text{font-size:14.5px;color:var(--ink);margin:0 0 4px;font-weight:600;}
-.plant-next-text{margin:0 0 14px;font-size:13px;}
-.plant-hint{margin:0;}
-.plant-btn{font-size:16px;}
 
 .settings-modal{max-width:480px;}
 .settings-group{border-top:1px solid var(--line);padding-top:16px;margin-top:16px;}
@@ -561,18 +546,16 @@ textarea.text-input{resize:vertical;line-height:1.6;}
 .progress-today{margin:10px 0 0;font-size:12.5px;color:var(--ink-soft);text-align:center;}
 
 /* ===== mood tracker ===== */
-.mood-grid{display:grid;grid-template-columns:repeat(6,1fr);gap:6px;}
-@media (max-width:700px){.mood-grid{grid-template-columns:repeat(4,1fr);}}
-@media (max-width:420px){.mood-grid{grid-template-columns:repeat(3,1fr);}}
+.mood-grid{display:flex;flex-wrap:wrap;gap:18px;}
 .mood-btn{
-  background:none;border:0;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:3px;
-  padding:4px;border-radius:11px;transition:transform .15s ease, background .15s ease;
+  background:none;border:0;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:8px;
+  padding:8px;border-radius:14px;transition:transform .15s ease, background .15s ease;
 }
-.mood-btn:hover{transform:translateY(-1px);}
-.mood-btn.selected{background:rgba(255,255,255,.55);}
-.mood-btn svg{width:28px;height:28px;filter:drop-shadow(0 1px 3px rgba(46,42,77,.12));}
+.mood-btn:hover{transform:translateY(-2px);}
+.mood-btn.selected{background:var(--card-soft);}
+.mood-btn svg{filter:drop-shadow(0 2px 4px rgba(46,42,77,.12));display:block;}
 .mood-btn.selected svg{transform:scale(1.08);}
-.mood-label{font-size:9.5px;color:var(--ink-soft);}
+.mood-label{font-size:12.5px;color:var(--ink-soft);font-family:'Kanit',sans-serif;letter-spacing:.04em;text-transform:uppercase;}
 .mood-btn.selected .mood-label{color:var(--ink);font-weight:600;}
 
 /* ===== challenge streak dots ===== */

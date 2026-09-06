@@ -46,108 +46,97 @@
     if (el) el.textContent = '"' + pickQuoteOfDay() + '"';
   }
 
-  var PLANT_STAGES = [
-    { min: 0, emoji: '🌰', label: 'เมล็ดพันธุ์' },
-    { min: 3, emoji: '🌱', label: 'ต้นอ่อน' },
-    { min: 7, emoji: '🌿', label: 'ใบเขียว' },
-    { min: 14, emoji: '🪴', label: 'ต้นไม้กระถาง' },
-    { min: 30, emoji: '🌳', label: 'ต้นไม้ใหญ่' },
-    { min: 60, emoji: '🌸', label: 'ออกดอก' },
-    { min: 100, emoji: '🌳✨', label: 'ต้นไม้ในฝัน' }
-  ];
-  var PLANT = { days: 0 };
-
-  function plantStageFor(days) {
-    var stage = PLANT_STAGES[0];
-    for (var i = 0; i < PLANT_STAGES.length; i++) { if (days >= PLANT_STAGES[i].min) stage = PLANT_STAGES[i]; }
-    return stage;
-  }
-  function plantNextStageFor(days) {
-    for (var i = 0; i < PLANT_STAGES.length; i++) { if (days < PLANT_STAGES[i].min) return PLANT_STAGES[i]; }
-    return null;
-  }
-
-  function renderPlant() {
-    var stage = plantStageFor(PLANT.days);
-    $('plantBtn').textContent = stage.emoji;
-    $('plantEmoji').textContent = stage.emoji;
-    $('plantStageLabel').textContent = stage.label;
-    $('plantDaysText').textContent = 'มาเยี่ยมแล้ว ' + PLANT.days + ' วัน';
-    var next = plantNextStageFor(PLANT.days);
-    $('plantNextText').textContent = next
-      ? 'อีก ' + (next.min - PLANT.days) + ' วันจะโตขึ้นเป็น ' + next.emoji + ' ' + next.label
-      : 'ต้นไม้ของคุณโตเต็มที่แล้ว 🎉';
-  }
-
-  function bindPlant() {
-    $('plantBtn').addEventListener('click', function () { show('plantOverlay'); });
-    $('plantClose').addEventListener('click', function () { hide('plantOverlay'); });
-    $('plantOverlay').addEventListener('click', function (e) { if (e.target === $('plantOverlay')) hide('plantOverlay'); });
-  }
-
   /* ================= MOOD TRACKER ================= */
-  function faceSvg(kind) {
-    switch (kind) {
-      case 'smile': return '<path d="M13 18c1.5 2 3 2 4 0M23 18c1.5 2 3 2 4 0" fill="none" stroke="#2E2A4D" stroke-width="2.2" stroke-linecap="round"/><path d="M14 25c2 2.5 10 2.5 12 0" fill="none" stroke="#2E2A4D" stroke-width="2.2" stroke-linecap="round"/>';
-      case 'smileBig': return '<path d="M12 17c1.8 2.3 3.6 2.3 5 0M23 17c1.8 2.3 3.6 2.3 5 0" fill="none" stroke="#2E2A4D" stroke-width="2.2" stroke-linecap="round"/><path d="M13 24c2.5 3.5 11.5 3.5 14 0" fill="none" stroke="#2E2A4D" stroke-width="2.2" stroke-linecap="round"/>';
-      case 'tear': return '<path d="M13 18c1.5 2 3 2 4 0M23 18c1.5 2 3 2 4 0" fill="none" stroke="#2E2A4D" stroke-width="2.2" stroke-linecap="round"/><path d="M14 24c1.6 1.8 9.6 1.8 12 0" fill="none" stroke="#2E2A4D" stroke-width="2" stroke-linecap="round"/><path d="M12 20c-1.6 1.4-1.6 3.2 0 4.4 1.6-1.2 1.6-3 0-4.4z" fill="#2E2A4D"/>';
-      case 'spiral': return '<path d="M14 15a3.5 3.5 0 1 1 -3.5 3.5 2.4 2.4 0 1 1 2.4 2.4" fill="none" stroke="#2E2A4D" stroke-width="1.8" stroke-linecap="round"/><circle cx="26" cy="18" r="2.4" fill="#2E2A4D"/><path d="M15 25c2.5 2 8.5 2 11 0" fill="none" stroke="#2E2A4D" stroke-width="2" stroke-linecap="round"/>';
-      case 'sleepy': return '<ellipse cx="15" cy="18" rx="3.5" ry="1.6" fill="#2E2A4D"/><ellipse cx="25" cy="18" rx="3.5" ry="1.6" fill="#2E2A4D"/><path d="M15 25h10" stroke="#2E2A4D" stroke-width="2.2" stroke-linecap="round"/>';
-      case 'squint': return '<path d="M11 15l7 3M29 15l-7 3" stroke="#2E2A4D" stroke-width="2.2" stroke-linecap="round"/><path d="M15 26h10" stroke="#2E2A4D" stroke-width="2.2" stroke-linecap="round"/>';
-      case 'flat': return '<circle cx="15" cy="18" r="2.2" fill="#2E2A4D"/><circle cx="25" cy="18" r="2.2" fill="#2E2A4D"/><path d="M14 26h12" stroke="#2E2A4D" stroke-width="2.2" stroke-linecap="round"/>';
-      case 'peek': return '<circle cx="25" cy="18" r="2.4" fill="#2E2A4D"/><path d="M11 18a4 4 0 0 1 8 0" fill="none" stroke="#2E2A4D" stroke-width="2.2" stroke-linecap="round"/><path d="M14 26h12" stroke="#2E2A4D" stroke-width="2.2" stroke-linecap="round"/>';
-      case 'sad': return '<path d="M11 20c1.5-2.3 6.5-2.3 8 0M21 20c1.5-2.3 6.5-2.3 8 0" fill="none" stroke="#2E2A4D" stroke-width="2.2" stroke-linecap="round"/><path d="M14 27c2.5-2 9.5-2 12 0" fill="none" stroke="#2E2A4D" stroke-width="2.2" stroke-linecap="round"/>';
-      case 'side': return '<circle cx="17" cy="18" r="2.2" fill="#2E2A4D"/><circle cx="27" cy="18" r="2.2" fill="#2E2A4D"/><path d="M14 26h12" stroke="#2E2A4D" stroke-width="2.2" stroke-linecap="round"/>';
-      default: return '';
-    }
-  }
-
   var MOODS = [
-    { key: 'excited', label: 'Excited', shape: 'circle', color: '#FF9EC7', face: 'smile' },
-    { key: 'joyful', label: 'Joyful', shape: 'circle', color: '#FF4FA3', face: 'smileBig' },
-    { key: 'grateful', label: 'Grateful', shape: 'square', color: '#B26EF2', face: 'smile' },
-    { key: 'energized', label: 'Energized', shape: 'square', color: '#9B7CF0', face: 'smile' },
-    { key: 'sensitive', label: 'Sensitive', shape: 'circle', color: '#33C1F5', face: 'tear' },
-    { key: 'confused', label: 'Confused', shape: 'hex', color: '#2F6BFF', face: 'spiral' },
-    { key: 'bored', label: 'Bored', shape: 'circle', color: '#1FA971', face: 'sleepy' },
-    { key: 'stressed', label: 'Stressed', shape: 'triangle', color: '#22B14C', face: 'squint' },
-    { key: 'angry', label: 'Angry', shape: 'square', color: '#FF4B2B', face: 'flat' },
-    { key: 'insecure', label: 'Insecure', shape: 'circle', color: '#FF7A1A', face: 'peek' },
-    { key: 'hurt', label: 'Hurt', shape: 'square', color: '#FFA100', face: 'sad' },
-    { key: 'guilty', label: 'Guilty', shape: 'flag', color: '#FFC400', face: 'side' }
+    { key: 'awful', label: 'Awful', color: '#D6BEEA', mouth: -6 },
+    { key: 'bad', label: 'Bad', color: '#7FB9E6', mouth: -3 },
+    { key: 'okay', label: 'Okay', color: '#F4D77A', mouth: 0 },
+    { key: 'good', label: 'Good', color: '#B7C96A', mouth: 3 },
+    { key: 'great', label: 'Great', color: '#FF8F45', mouth: 6 }
   ];
+  var MOOD_BY_KEY = {};
+  MOODS.forEach(function (m) { MOOD_BY_KEY[m.key] = m; });
 
-  function moodShapeSvg(shape, color) {
-    switch (shape) {
-      case 'square': return '<rect x="1" y="1" width="38" height="38" rx="13" fill="' + color + '"/>';
-      case 'hex': return '<polygon points="10,2 30,2 38,20 30,38 10,38 2,20" fill="' + color + '"/>';
-      case 'triangle': return '<polygon points="20,3 37,35 3,35" fill="' + color + '" stroke="' + color + '" stroke-width="6" stroke-linejoin="round"/>';
-      case 'flag': return '<polygon points="4,4 36,4 36,23 20,36 4,23" fill="' + color + '"/>';
-      default: return '<circle cx="20" cy="20" r="19" fill="' + color + '"/>';
-    }
+  function moodFaceSvg(mood, size) {
+    size = size || 40;
+    var mouthPath = 'M13 23q7 ' + mood.mouth + ' 14 0';
+    return '<svg viewBox="0 0 40 40" width="' + size + '" height="' + size + '" xmlns="http://www.w3.org/2000/svg">' +
+      '<circle cx="20" cy="20" r="19" fill="' + mood.color + '"/>' +
+      '<circle cx="14.5" cy="17" r="1.8" fill="#2E2A4D"/><circle cx="25.5" cy="17" r="1.8" fill="#2E2A4D"/>' +
+      '<path d="' + mouthPath + '" fill="none" stroke="#2E2A4D" stroke-width="2" stroke-linecap="round"/>' +
+      '</svg>';
   }
 
-  function moodIconSvg(mood) {
-    return '<svg viewBox="0 0 40 40" xmlns="http://www.w3.org/2000/svg">' + moodShapeSvg(mood.shape, mood.color) + faceSvg(mood.face) + '</svg>';
-  }
-
-  function renderMoodGrid() {
-    var wrap = $('moodGrid');
+  function renderMoodCheckin() {
+    var wrap = $('moodCheckinGrid');
     if (!wrap) return;
+    var todayK = todayKeyClient();
     wrap.innerHTML = MOODS.map(function (m) {
-      return '<button type="button" class="mood-btn' + (D.mood === m.key ? ' selected' : '') + '" data-mood="' + m.key + '">' +
-        moodIconSvg(m) + '<span class="mood-label">' + m.label + '</span></button>';
+      return '<button type="button" class="mood-btn' + (MOOD_TODAY === m.key ? ' selected' : '') + '" data-mood="' + m.key + '">' +
+        moodFaceSvg(m, 56) + '<span class="mood-label">' + m.label + '</span></button>';
     }).join('');
     wrap.querySelectorAll('.mood-btn').forEach(function (btn) {
       btn.addEventListener('click', function () {
         var key = btn.getAttribute('data-mood');
-        D.mood = D.mood === key ? '' : key;
-        renderMoodGrid();
-        call('set_mood', { p_date: D.date, p_mood_key: D.mood }).then(function () {
+        MOOD_TODAY = MOOD_TODAY === key ? '' : key;
+        renderMoodCheckin();
+        call('set_mood', { p_date: todayK, p_mood_key: MOOD_TODAY }).then(function () {
           loadPoints();
+          loadMoodWeek();
         }).catch(function (err) { toast(errMsg(err), true); });
       });
     });
+  }
+
+  var MOOD_TODAY = '';
+  var moodWeekStart = '';
+
+  function loadMoodWeek() {
+    return call('get_mood_week', { p_week_start: moodWeekStart }).then(function (res) {
+      renderMoodAnalysis(res);
+    }).catch(function (err) { toast(errMsg(err), true); });
+  }
+
+  function renderMoodAnalysis(week) {
+    $('moodWeekLabel').textContent = formatWeekLabel(week.weekStart);
+    var w = 700, h = 190, padX = 40, padTop = 25, padBottom = 30;
+    var stepX = (w - padX * 2) / 6;
+    var levelY = function (idx) { return h - padBottom - (idx * ((h - padTop - padBottom) / 4)); };
+    var pts = week.days.map(function (d, i) {
+      var mood = MOOD_BY_KEY[d.moodKey];
+      var idx = MOODS.findIndex(function (m) { return m.key === d.moodKey; });
+      return { x: padX + i * stepX, y: idx >= 0 ? levelY(idx) : null, mood: mood, date: d.date };
+    });
+    var line = '';
+    var segStart = null;
+    pts.forEach(function (p) {
+      if (p.y === null) { segStart = null; return; }
+      if (segStart === null) { line += '<path d="M' + p.x + ' ' + p.y; segStart = p; }
+      else { line += ' L' + p.x + ' ' + p.y; }
+    });
+    if (segStart) line += '" fill="none" stroke="#B7C96A" stroke-width="3" stroke-linecap="round"/>';
+    var dots = pts.map(function (p) {
+      if (!p.mood) return '';
+      return '<g transform="translate(' + (p.x - 16) + ',' + (p.y - 16) + ')">' + moodFaceSvg(p.mood, 32) + '</g>';
+    }).join('');
+    var labels = pts.map(function (p, i) {
+      return '<text x="' + p.x + '" y="' + (h - 6) + '" text-anchor="middle" font-size="11" fill="#6B6690" font-family="Kanit,sans-serif">' + THAI_DOW_SHORT[(i + 1) % 7] + '</text>';
+    }).join('');
+    $('moodAnalysisSvg').innerHTML = line + dots + labels;
+  }
+
+  function bindMood() {
+    moodWeekStart = mondayOf(todayKeyClient());
+    $('moodWeekPrev').addEventListener('click', function () { moodWeekStart = addDays(moodWeekStart, -7); loadMoodWeek(); });
+    $('moodWeekNext').addEventListener('click', function () { moodWeekStart = addDays(moodWeekStart, 7); loadMoodWeek(); });
+  }
+
+  function loadMoodView() {
+    call('get_daily_entry', { p_date: todayKeyClient() }).then(function (data) {
+      MOOD_TODAY = data.mood || '';
+      renderMoodCheckin();
+    }).catch(function () {});
+    loadMoodWeek();
   }
 
   /* ================= OVERALL PROGRESS (POINTS) ================= */
@@ -312,17 +301,15 @@
     bindSettingsModal();
     bindQuickEventModal();
     bindChallenge();
+    bindMood();
     bindLogout();
     renderQuoteOfDay();
-    bindPlant();
     $('settingsBtn').addEventListener('click', openSettingsModal);
 
     call('get_bootstrap').then(function (boot) {
       D = boot.daily;
       SETTINGS = D.settings;
-      PLANT = boot.plant || { days: 0 };
       POINTS = boot.points || POINTS;
-      renderPlant();
       renderPoints();
       hide('loading'); hide('loginScreen'); show('app');
       renderDailyAll();
@@ -348,7 +335,7 @@
     var tabs = document.querySelectorAll('.view-switch-btn');
     for (var i = 0; i < tabs.length; i++) tabs[i].classList.toggle('on', tabs[i].getAttribute('data-view') === v);
     $('headerStats').classList.toggle('hidden', v !== 'daily');
-    hide('dailyView'); hide('weeklyView'); hide('contentView'); hide('challengeView');
+    hide('dailyView'); hide('weeklyView'); hide('contentView'); hide('challengeView'); hide('moodView');
     if (v === 'daily') { show('dailyView'); loadDaily(D ? D.date : todayKeyClient()); }
     else if (v === 'weekly') { show('weeklyView'); loadWeek(W ? W.weekStart : mondayOf(D ? D.date : todayKeyClient())); }
     else if (v === 'content') {
@@ -358,6 +345,9 @@
     } else if (v === 'challenge') {
       show('challengeView');
       loadChallenges();
+    } else if (v === 'mood') {
+      show('moodView');
+      loadMoodView();
     }
     window.scrollTo(0, 0);
   }
@@ -594,7 +584,6 @@
     $('brainDump').value = D.brainDump || '';
     renderQuickLinks();
     renderHabitGrid(D.habits);
-    renderMoodGrid();
     renderDailyChallenges(D.activeChallenges || []);
     renderPipelineSnapshot(D.pipelineCounts, 'pipelineSnapshot');
     updateHeaderStats();
