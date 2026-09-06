@@ -1,40 +1,40 @@
 :root{
-  /* palette: SEA #ffd9ff · HEAVEN #c7f3f6 · SHINE #fdfcf8 · BLUSH #a4c6e8 · WAVE #7e89ca */
-  --bg:#FDFCF8;
-  --panel:#52598A;
-  --panel-soft:#6B729E;
-  --panel-text:#F5F3FB;
+  /* brighter palette v2, same family as SEA/HEAVEN/SHINE/BLUSH/WAVE but more saturated */
+  --bg:#FFFBF3;
+  --panel:#6A5FD3;
+  --panel-soft:#8477E0;
+  --panel-text:#FFFFFF;
   --card:#FFFFFF;
-  --card-soft:rgba(255,255,255,.62);
+  --card-soft:rgba(255,255,255,.68);
   --ink:#2E2A4D;
   --ink-soft:#6B6690;
   --line:#E6E2F2;
-  --accent:#C97BC4;
-  --accent-soft:#FBE7FA;
-  --sage:#4FA8A0;
-  --sage-soft:#DDF5F3;
-  --ochre:#C99A3E;
-  --ochre-soft:#F4E8CC;
+  --accent:#FF4FA3;
+  --accent-soft:#FFE1F0;
+  --sage:#00C2A8;
+  --sage-soft:#D3FFF4;
+  --ochre:#FFA716;
+  --ochre-soft:#FFEDCC;
   --shadow:0 2px 6px rgba(46,42,77,.06), 0 10px 26px rgba(46,42,77,.08);
   --radius:18px;
   --radius-sm:10px;
 
   /* glass */
-  --glass-bg:rgba(255,255,255,.5);
-  --glass-border:rgba(255,255,255,.65);
-  --glass-shadow:0 8px 32px rgba(46,42,77,.14), inset 0 1px 0 rgba(255,255,255,.5);
+  --glass-bg:rgba(255,255,255,.52);
+  --glass-border:rgba(255,255,255,.7);
+  --glass-shadow:0 8px 32px rgba(106,95,211,.16), inset 0 1px 0 rgba(255,255,255,.55);
   --glass-blur:18px;
-  --panel-glass-bg:rgba(82,89,138,.55);
-  --panel-glass-border:rgba(255,255,255,.25);
+  --panel-glass-bg:rgba(106,95,211,.62);
+  --panel-glass-border:rgba(255,255,255,.3);
 }
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
 html,body{margin:0;padding:0;}
 body{
   background:
-    radial-gradient(circle at 12% 18%, rgba(255,217,255,.55), transparent 42%),
-    radial-gradient(circle at 88% 12%, rgba(199,243,246,.55), transparent 42%),
-    radial-gradient(circle at 75% 82%, rgba(164,198,232,.45), transparent 45%),
-    radial-gradient(circle at 15% 85%, rgba(126,137,202,.30), transparent 40%),
+    radial-gradient(circle at 12% 18%, rgba(255,150,220,.55), transparent 42%),
+    radial-gradient(circle at 88% 12%, rgba(120,225,235,.55), transparent 42%),
+    radial-gradient(circle at 75% 82%, rgba(130,180,255,.45), transparent 45%),
+    radial-gradient(circle at 15% 85%, rgba(140,120,235,.35), transparent 40%),
     var(--bg);
   background-attachment:fixed;
   color:var(--ink);
@@ -533,3 +533,48 @@ textarea.text-input{resize:vertical;line-height:1.6;}
 }
 .settings-row .st-del:hover{color:var(--accent);}
 .settings-logout-row{border-top:1px solid var(--line);padding-top:16px;margin-top:16px;text-align:center;}
+
+/* ===== overall progress (points) ===== */
+.progress-card{
+  background:linear-gradient(135deg, rgba(255,167,22,.16), rgba(255,79,163,.12));
+}
+.progress-head{display:flex;align-items:center;gap:10px;margin-bottom:12px;}
+.progress-sun{font-size:20px;flex:none;}
+.progress-nums{margin-left:auto;font-family:'Kanit',sans-serif;font-size:13px;color:var(--ink-soft);}
+.progress-nums b{color:var(--ink);font-size:15px;}
+.progress-track{
+  height:16px;border-radius:999px;background:rgba(255,255,255,.6);overflow:hidden;
+  border:1px solid rgba(255,167,22,.25);
+}
+.progress-fill{
+  height:100%;border-radius:999px;
+  background:linear-gradient(90deg, var(--ochre), var(--accent));
+  transition:width .4s ease;
+}
+.progress-today{margin:10px 0 0;font-size:12.5px;color:var(--ink-soft);text-align:center;}
+
+/* ===== mood tracker ===== */
+.mood-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;}
+@media (max-width:560px){.mood-grid{grid-template-columns:repeat(3,1fr);}}
+.mood-btn{
+  background:none;border:0;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:6px;
+  padding:6px;border-radius:14px;transition:transform .15s ease, background .15s ease;
+}
+.mood-btn:hover{transform:translateY(-2px);}
+.mood-btn.selected{background:rgba(255,255,255,.55);}
+.mood-btn svg{width:46px;height:46px;filter:drop-shadow(0 2px 4px rgba(46,42,77,.12));}
+.mood-btn.selected svg{transform:scale(1.08);}
+.mood-label{font-size:11px;color:var(--ink-soft);}
+.mood-btn.selected .mood-label{color:var(--ink);font-weight:600;}
+
+/* ===== challenge streak dots ===== */
+.challenge-card{align-items:flex-start;flex-direction:column;gap:10px;}
+.challenge-card-top{display:flex;align-items:center;gap:12px;width:100%;}
+.challenge-bar-track{width:100%;height:8px;border-radius:999px;background:rgba(255,255,255,.6);overflow:hidden;}
+.challenge-bar-fill{height:100%;border-radius:999px;background:linear-gradient(90deg, var(--sage), var(--panel));}
+.challenge-dots{display:flex;flex-wrap:wrap;gap:4px;width:100%;}
+.challenge-dot{
+  width:14px;height:14px;border-radius:5px;background:var(--line);flex:none;
+}
+.challenge-dot.done{background:var(--sage);}
+.challenge-dot.future{background:transparent;border:1px dashed var(--line);}

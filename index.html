@@ -83,6 +83,21 @@
     <main class="content-panel">
       <!-- ================= DAILY VIEW ================= -->
       <div id="dailyView">
+        <div class="card progress-card">
+          <div class="progress-head">
+            <span class="progress-sun">☀️</span>
+            <p class="card-label" style="margin:0;">Overall Progress</p>
+            <span id="progressNums" class="progress-nums"></span>
+          </div>
+          <div class="progress-track"><div id="progressFill" class="progress-fill" style="width:0%"></div></div>
+          <p id="progressToday" class="progress-today"></p>
+        </div>
+
+        <div class="card">
+          <p class="card-label">Check-in time: วันนี้คุณรู้สึกยังไง</p>
+          <div id="moodGrid" class="mood-grid"></div>
+        </div>
+
         <div class="daily-shell">
           <div class="daily-left">
             <div class="card mini-cal">
@@ -100,6 +115,12 @@
               <div id="priorityList" class="priority-list"></div>
               <div id="carryOverList" class="carryover-list"></div>
             </div>
+
+            <div class="card">
+              <p class="card-label">To-Do List วันนี้</p>
+              <div id="todoList" class="todo-list"></div>
+              <input id="todoInput" class="area-flat quickcapture-input" type="text" placeholder="เพิ่มสิ่งที่ต้องทำแล้วกด Enter…" autocomplete="off">
+            </div>
           </div>
 
           <div class="daily-main">
@@ -116,22 +137,15 @@
           </div>
         </div>
 
-        <div class="daily-row-2">
-          <div class="card">
-            <p class="card-label">To-Do List วันนี้</p>
-            <div id="todoList" class="todo-list"></div>
-            <input id="todoInput" class="area-flat quickcapture-input" type="text" placeholder="เพิ่มสิ่งที่ต้องทำแล้วกด Enter…" autocomplete="off">
+        <div class="card">
+          <p class="card-label">กิจกรรม / นัดหมาย</p>
+          <div id="eventList" class="event-list"></div>
+          <div class="event-add-row">
+            <input id="eventDate" class="text-input event-date-input" type="date" title="วันที่ (ค่าเริ่มต้น = วันที่กำลังดูอยู่)">
+            <input id="eventTime" class="text-input event-time-input" type="time">
+            <input id="eventTitle" class="text-input" type="text" placeholder="ชื่อกิจกรรม/นัดหมาย แล้วกด Enter…" autocomplete="off">
           </div>
-          <div class="card">
-            <p class="card-label">กิจกรรม / นัดหมาย</p>
-            <div id="eventList" class="event-list"></div>
-            <div class="event-add-row">
-              <input id="eventDate" class="text-input event-date-input" type="date" title="วันที่ (ค่าเริ่มต้น = วันที่กำลังดูอยู่)">
-              <input id="eventTime" class="text-input event-time-input" type="time">
-              <input id="eventTitle" class="text-input" type="text" placeholder="ชื่อกิจกรรม/นัดหมาย แล้วกด Enter…" autocomplete="off">
-            </div>
-            <p class="muted small-note event-hint">เลือกวันที่ล่วงหน้าได้ ไม่ต้องย้ายไปหน้าวันนั้นก่อน</p>
-          </div>
+          <p class="muted small-note event-hint">เลือกวันที่ล่วงหน้าได้ ไม่ต้องย้ายไปหน้าวันนั้นก่อน</p>
         </div>
 
         <div class="card">

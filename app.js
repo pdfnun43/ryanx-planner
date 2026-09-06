@@ -85,6 +85,95 @@
     $('plantOverlay').addEventListener('click', function (e) { if (e.target === $('plantOverlay')) hide('plantOverlay'); });
   }
 
+  /* ================= MOOD TRACKER ================= */
+  function faceSvg(kind) {
+    switch (kind) {
+      case 'smile': return '<path d="M13 18c1.5 2 3 2 4 0M23 18c1.5 2 3 2 4 0" fill="none" stroke="#2E2A4D" stroke-width="2.2" stroke-linecap="round"/><path d="M14 25c2 2.5 10 2.5 12 0" fill="none" stroke="#2E2A4D" stroke-width="2.2" stroke-linecap="round"/>';
+      case 'smileBig': return '<path d="M12 17c1.8 2.3 3.6 2.3 5 0M23 17c1.8 2.3 3.6 2.3 5 0" fill="none" stroke="#2E2A4D" stroke-width="2.2" stroke-linecap="round"/><path d="M13 24c2.5 3.5 11.5 3.5 14 0" fill="none" stroke="#2E2A4D" stroke-width="2.2" stroke-linecap="round"/>';
+      case 'tear': return '<path d="M13 18c1.5 2 3 2 4 0M23 18c1.5 2 3 2 4 0" fill="none" stroke="#2E2A4D" stroke-width="2.2" stroke-linecap="round"/><path d="M14 24c1.6 1.8 9.6 1.8 12 0" fill="none" stroke="#2E2A4D" stroke-width="2" stroke-linecap="round"/><path d="M12 20c-1.6 1.4-1.6 3.2 0 4.4 1.6-1.2 1.6-3 0-4.4z" fill="#2E2A4D"/>';
+      case 'spiral': return '<path d="M14 15a3.5 3.5 0 1 1 -3.5 3.5 2.4 2.4 0 1 1 2.4 2.4" fill="none" stroke="#2E2A4D" stroke-width="1.8" stroke-linecap="round"/><circle cx="26" cy="18" r="2.4" fill="#2E2A4D"/><path d="M15 25c2.5 2 8.5 2 11 0" fill="none" stroke="#2E2A4D" stroke-width="2" stroke-linecap="round"/>';
+      case 'sleepy': return '<ellipse cx="15" cy="18" rx="3.5" ry="1.6" fill="#2E2A4D"/><ellipse cx="25" cy="18" rx="3.5" ry="1.6" fill="#2E2A4D"/><path d="M15 25h10" stroke="#2E2A4D" stroke-width="2.2" stroke-linecap="round"/>';
+      case 'squint': return '<path d="M11 15l7 3M29 15l-7 3" stroke="#2E2A4D" stroke-width="2.2" stroke-linecap="round"/><path d="M15 26h10" stroke="#2E2A4D" stroke-width="2.2" stroke-linecap="round"/>';
+      case 'flat': return '<circle cx="15" cy="18" r="2.2" fill="#2E2A4D"/><circle cx="25" cy="18" r="2.2" fill="#2E2A4D"/><path d="M14 26h12" stroke="#2E2A4D" stroke-width="2.2" stroke-linecap="round"/>';
+      case 'peek': return '<circle cx="25" cy="18" r="2.4" fill="#2E2A4D"/><path d="M11 18a4 4 0 0 1 8 0" fill="none" stroke="#2E2A4D" stroke-width="2.2" stroke-linecap="round"/><path d="M14 26h12" stroke="#2E2A4D" stroke-width="2.2" stroke-linecap="round"/>';
+      case 'sad': return '<path d="M11 20c1.5-2.3 6.5-2.3 8 0M21 20c1.5-2.3 6.5-2.3 8 0" fill="none" stroke="#2E2A4D" stroke-width="2.2" stroke-linecap="round"/><path d="M14 27c2.5-2 9.5-2 12 0" fill="none" stroke="#2E2A4D" stroke-width="2.2" stroke-linecap="round"/>';
+      case 'side': return '<circle cx="17" cy="18" r="2.2" fill="#2E2A4D"/><circle cx="27" cy="18" r="2.2" fill="#2E2A4D"/><path d="M14 26h12" stroke="#2E2A4D" stroke-width="2.2" stroke-linecap="round"/>';
+      default: return '';
+    }
+  }
+
+  var MOODS = [
+    { key: 'excited', label: 'Excited', shape: 'circle', color: '#FF9EC7', face: 'smile' },
+    { key: 'joyful', label: 'Joyful', shape: 'circle', color: '#FF4FA3', face: 'smileBig' },
+    { key: 'grateful', label: 'Grateful', shape: 'square', color: '#B26EF2', face: 'smile' },
+    { key: 'energized', label: 'Energized', shape: 'square', color: '#9B7CF0', face: 'smile' },
+    { key: 'sensitive', label: 'Sensitive', shape: 'circle', color: '#33C1F5', face: 'tear' },
+    { key: 'confused', label: 'Confused', shape: 'hex', color: '#2F6BFF', face: 'spiral' },
+    { key: 'bored', label: 'Bored', shape: 'circle', color: '#1FA971', face: 'sleepy' },
+    { key: 'stressed', label: 'Stressed', shape: 'triangle', color: '#22B14C', face: 'squint' },
+    { key: 'angry', label: 'Angry', shape: 'square', color: '#FF4B2B', face: 'flat' },
+    { key: 'insecure', label: 'Insecure', shape: 'circle', color: '#FF7A1A', face: 'peek' },
+    { key: 'hurt', label: 'Hurt', shape: 'square', color: '#FFA100', face: 'sad' },
+    { key: 'guilty', label: 'Guilty', shape: 'flag', color: '#FFC400', face: 'side' }
+  ];
+
+  function moodShapeSvg(shape, color) {
+    switch (shape) {
+      case 'square': return '<rect x="1" y="1" width="38" height="38" rx="13" fill="' + color + '"/>';
+      case 'hex': return '<polygon points="10,2 30,2 38,20 30,38 10,38 2,20" fill="' + color + '"/>';
+      case 'triangle': return '<polygon points="20,3 37,35 3,35" fill="' + color + '" stroke="' + color + '" stroke-width="6" stroke-linejoin="round"/>';
+      case 'flag': return '<polygon points="4,4 36,4 36,23 20,36 4,23" fill="' + color + '"/>';
+      default: return '<circle cx="20" cy="20" r="19" fill="' + color + '"/>';
+    }
+  }
+
+  function moodIconSvg(mood) {
+    return '<svg viewBox="0 0 40 40" xmlns="http://www.w3.org/2000/svg">' + moodShapeSvg(mood.shape, mood.color) + faceSvg(mood.face) + '</svg>';
+  }
+
+  function renderMoodGrid() {
+    var wrap = $('moodGrid');
+    if (!wrap) return;
+    wrap.innerHTML = MOODS.map(function (m) {
+      return '<button type="button" class="mood-btn' + (D.mood === m.key ? ' selected' : '') + '" data-mood="' + m.key + '">' +
+        moodIconSvg(m) + '<span class="mood-label">' + m.label + '</span></button>';
+    }).join('');
+    wrap.querySelectorAll('.mood-btn').forEach(function (btn) {
+      btn.addEventListener('click', function () {
+        var key = btn.getAttribute('data-mood');
+        D.mood = D.mood === key ? '' : key;
+        renderMoodGrid();
+        call('set_mood', { p_date: D.date, p_mood_key: D.mood }).then(function () {
+          loadPoints();
+        }).catch(function (err) { toast(errMsg(err), true); });
+      });
+    });
+  }
+
+  /* ================= OVERALL PROGRESS (POINTS) ================= */
+  var POINT_TIERS = [0, 200, 800, 2000, 5000, 12000, 30000, 60000];
+  var POINTS = { totalPoints: 0, todayPoints: 0 };
+
+  function renderPoints() {
+    var total = POINTS.totalPoints || 0;
+    var start = POINT_TIERS[0], end = POINT_TIERS[POINT_TIERS.length - 1];
+    for (var i = 0; i < POINT_TIERS.length - 1; i++) {
+      if (total >= POINT_TIERS[i] && total < POINT_TIERS[i + 1]) { start = POINT_TIERS[i]; end = POINT_TIERS[i + 1]; break; }
+      if (total >= POINT_TIERS[POINT_TIERS.length - 1]) { start = POINT_TIERS[POINT_TIERS.length - 2]; end = POINT_TIERS[POINT_TIERS.length - 1]; }
+    }
+    var pct = end > start ? Math.min(100, Math.round(((total - start) / (end - start)) * 100)) : 100;
+    $('progressFill').style.width = pct + '%';
+    $('progressNums').textContent = fmt(total - start) + ' / ' + fmt(end - start);
+    $('progressToday').textContent = 'วันนี้ทำไปแล้ว ' + (POINTS.todayPoints || 0) + ' คะแนน';
+  }
+
+  function loadPoints() {
+    call('get_points_progress').then(function (res) {
+      POINTS = res || POINTS;
+      renderPoints();
+    }).catch(function () {});
+  }
+
   var S = { view: 'daily' };
   var D = null;      // current daily entry
   var W = null;      // current week summary
@@ -232,7 +321,9 @@
       D = boot.daily;
       SETTINGS = D.settings;
       PLANT = boot.plant || { days: 0 };
+      POINTS = boot.points || POINTS;
       renderPlant();
+      renderPoints();
       hide('loading'); hide('loginScreen'); show('app');
       renderDailyAll();
       loadIdeaBank();
@@ -301,6 +392,7 @@
     setSaveState('กำลังบันทึก…');
     call('save_daily_entry', buildDailyPayload()).then(function () {
       setSaveState('บันทึกแล้ว ✓');
+      loadPoints();
     }).catch(function (err) {
       setSaveState('บันทึกไม่สำเร็จ: ' + errMsg(err));
     });
@@ -502,6 +594,7 @@
     $('brainDump').value = D.brainDump || '';
     renderQuickLinks();
     renderHabitGrid(D.habits);
+    renderMoodGrid();
     renderDailyChallenges(D.activeChallenges || []);
     renderPipelineSnapshot(D.pipelineCounts, 'pipelineSnapshot');
     updateHeaderStats();
@@ -775,7 +868,9 @@
           updateHeaderStats();
         }
         if (newChecked) toast('เก่งมาก! ✨');
-        call('toggle_habit_day', { p_habit_id: items[i].itemKey, p_date: dk, p_checked: newChecked }).catch(function (err) {
+        call('toggle_habit_day', { p_habit_id: items[i].itemKey, p_date: dk, p_checked: newChecked }).then(function () {
+          loadPoints();
+        }).catch(function (err) {
           toast(errMsg(err), true);
           items[i].week[j] = !newChecked;
           btn.classList.toggle('checked', !newChecked);
@@ -815,7 +910,9 @@
         item.checkedToday = newChecked;
         item.doneCount += newChecked ? 1 : -1;
         renderDailyChallenges(list);
-        call('toggle_challenge_day', { p_challenge_id: id, p_date: D.date, p_checked: newChecked }).catch(function (err) {
+        call('toggle_challenge_day', { p_challenge_id: id, p_date: D.date, p_checked: newChecked }).then(function () {
+          loadPoints();
+        }).catch(function (err) {
           toast(errMsg(err), true);
         });
       });
@@ -863,11 +960,26 @@
     } else {
       activeWrap.innerHTML = CHALLENGES.active.map(function (c) {
         var checkedToday = (c.checkedDates || []).indexOf(todayK) >= 0;
+        var pct = c.durationDays > 0 ? Math.round((c.doneCount / c.durationDays) * 100) : 0;
+        var checkedSet = {};
+        (c.checkedDates || []).forEach(function (d) { checkedSet[d] = true; });
+        var dots = '';
+        for (var i = 0; i < c.durationDays; i++) {
+          var dDate = addDays(c.startDate, i);
+          var cls = 'challenge-dot';
+          if (checkedSet[dDate]) cls += ' done';
+          else if (dDate > todayK) cls += ' future';
+          dots += '<span class="' + cls + '" title="' + dDate + '"></span>';
+        }
         return '<div class="challenge-card" data-id="' + esc(c.id) + '">' +
-          '<button type="button" class="challenge-check' + (checkedToday ? ' checked' : '') + '" data-id="' + esc(c.id) + '">' + (checkedToday ? '✓' : '') + '</button>' +
-          '<span class="challenge-name">' + esc(c.name) + '</span>' +
-          '<span class="challenge-progress">' + c.doneCount + '/' + c.durationDays + ' วันที่ทำแล้ว</span>' +
-          '<button type="button" class="challenge-del" data-id="' + esc(c.id) + '" title="ลบ">✕</button>' +
+          '<div class="challenge-card-top">' +
+            '<button type="button" class="challenge-check' + (checkedToday ? ' checked' : '') + '" data-id="' + esc(c.id) + '">' + (checkedToday ? '✓' : '') + '</button>' +
+            '<span class="challenge-name">' + esc(c.name) + '</span>' +
+            '<span class="challenge-progress">' + c.doneCount + '/' + c.durationDays + ' วันที่ทำแล้ว (' + pct + '%)</span>' +
+            '<button type="button" class="challenge-del" data-id="' + esc(c.id) + '" title="ลบ">✕</button>' +
+          '</div>' +
+          '<div class="challenge-bar-track"><div class="challenge-bar-fill" style="width:' + pct + '%"></div></div>' +
+          '<div class="challenge-dots">' + dots + '</div>' +
           '</div>';
       }).join('');
       activeWrap.querySelectorAll('.challenge-check').forEach(function (btn) {
@@ -876,6 +988,7 @@
           var checked = !btn.classList.contains('checked');
           call('toggle_challenge_day', { p_challenge_id: id, p_date: todayK, p_checked: checked }).then(function () {
             loadChallenges();
+            loadPoints();
             if (D) loadDaily(D.date);
           }).catch(function (err) { toast(errMsg(err), true); });
         });
