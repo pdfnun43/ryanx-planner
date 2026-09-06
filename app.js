@@ -118,14 +118,16 @@
       var idx = MOODS.findIndex(function (m) { return m.key === d.moodKey; });
       return { x: padX + i * stepX, y: idx >= 0 ? levelY(idx) : null, mood: mood, date: d.date };
     });
-    var line = '';
-    var segStart = null;
+    var segments = [];
+    var current = null;
     pts.forEach(function (p) {
-      if (p.y === null) { segStart = null; return; }
-      if (segStart === null) { line += '<path d="M' + p.x + ' ' + p.y; segStart = p; }
-      else { line += ' L' + p.x + ' ' + p.y; }
+      if (p.y === null) { current = null; return; }
+      if (!current) { current = ['M' + p.x + ' ' + p.y]; segments.push(current); }
+      else { current.push('L' + p.x + ' ' + p.y); }
     });
-    if (segStart) line += '" fill="none" stroke="#B7C96A" stroke-width="3" stroke-linecap="round"/>';
+    var line = segments.map(function (seg) {
+      return '<path d="' + seg.join(' ') + '" fill="none" stroke="#B7C96A" stroke-width="3" stroke-linecap="round"/>';
+    }).join('');
     var dots = pts.map(function (p) {
       if (!p.mood) return '';
       return '<g transform="translate(' + (p.x - 16) + ',' + (p.y - 16) + ')">' + moodFaceSvg(p.mood, 32) + '</g>';
@@ -152,18 +154,22 @@
 
   /* ================= OVERALL PROGRESS (POINTS) ================= */
   var POINT_TIERS = [0, 200, 800, 2000, 5000, 12000, 30000, 60000];
+  var POINT_LEVEL_NAMES = ['เพิ่งเริ่มต้น', 'กำลังไปได้ดี', 'ทำได้เก่งมาก', 'สุดยอดไปเลย', 'ยอดฝีมือ', 'มืออาชีพ', 'ตำนาน', 'เทพเจ้าแห่งวินัย'];
+  var PROGRESS_RING_CIRCUMFERENCE = 326.7;
   var POINTS = { totalPoints: 0, todayPoints: 0 };
 
   function renderPoints() {
     var total = POINTS.totalPoints || 0;
-    var start = POINT_TIERS[0], end = POINT_TIERS[POINT_TIERS.length - 1];
+    var start = POINT_TIERS[0], end = POINT_TIERS[POINT_TIERS.length - 1], levelIdx = 0;
     for (var i = 0; i < POINT_TIERS.length - 1; i++) {
-      if (total >= POINT_TIERS[i] && total < POINT_TIERS[i + 1]) { start = POINT_TIERS[i]; end = POINT_TIERS[i + 1]; break; }
-      if (total >= POINT_TIERS[POINT_TIERS.length - 1]) { start = POINT_TIERS[POINT_TIERS.length - 2]; end = POINT_TIERS[POINT_TIERS.length - 1]; }
+      if (total >= POINT_TIERS[i] && total < POINT_TIERS[i + 1]) { start = POINT_TIERS[i]; end = POINT_TIERS[i + 1]; levelIdx = i; break; }
+      if (total >= POINT_TIERS[POINT_TIERS.length - 1]) { start = POINT_TIERS[POINT_TIERS.length - 2]; end = POINT_TIERS[POINT_TIERS.length - 1]; levelIdx = POINT_TIERS.length - 1; }
     }
     var pct = end > start ? Math.min(100, Math.round(((total - start) / (end - start)) * 100)) : 100;
-    $('progressFill').style.width = pct + '%';
-    $('progressNums').textContent = fmt(total - start) + ' / ' + fmt(end - start);
+    $('progressRingFill').style.strokeDashoffset = (PROGRESS_RING_CIRCUMFERENCE * (1 - pct / 100)) + '';
+    $('progressTotal').textContent = fmt(total);
+    $('progressLevel').textContent = POINT_LEVEL_NAMES[levelIdx] || POINT_LEVEL_NAMES[POINT_LEVEL_NAMES.length - 1];
+    $('progressNums').textContent = 'อีก ' + fmt(end - total) + ' คะแนนถึงระดับถัดไป';
     $('progressToday').textContent = 'วันนี้ทำไปแล้ว ' + (POINTS.todayPoints || 0) + ' คะแนน';
   }
 
@@ -182,6 +188,8 @@
   var SETTINGS = null; // last-known settings (grouped)
   var SETTINGS_DRAFT = null;
   var IDEA_EDIT = null;
+  var PROJECTS = [];
+  var currentProjectId = '';
   var contentFilter = { q: '', channelId: '' };
   var calMonth = '';
   var miniCalMonth = '';
@@ -311,6 +319,7 @@
     bindIdeaModal();
     bindSettingsModal();
     bindQuickEventModal();
+    bindEventDetailModal();
     bindChallenge();
     bindMood();
     bindLogout();
@@ -324,6 +333,11 @@
       renderPoints();
       hide('loading'); hide('loginScreen'); show('app');
       renderDailyAll();
+      return call('get_projects');
+    }).then(function (projects) {
+      PROJECTS = projects || [];
+      if (PROJECTS.length && !currentProjectId) currentProjectId = PROJECTS[0].id;
+      renderQuickCaptureProjectChips();
       loadIdeaBank();
     }).catch(showFatal);
   }
@@ -543,9 +557,9 @@
   function submitQuickIdea() {
     var input = $('quickIdea');
     var title = input.value.trim();
-    if (!title) return;
+    if (!title || !currentProjectId) return;
     input.value = ''; input.disabled = true;
-    call('quick_capture_idea', { p_title: title }).then(function () {
+    call('quick_capture_idea', { p_title: title, p_project_id: currentProjectId }).then(function () {
       return call('get_daily_entry', { p_date: D.date });
     }).then(function (data) {
       input.disabled = false;
@@ -558,8 +572,26 @@
 
   var IDEA_BANK = [];
 
+  function renderQuickCaptureProjectChips() {
+    var wrap = $('quickCaptureProjects');
+    if (!wrap) return;
+    if (!PROJECTS.length) { wrap.innerHTML = ''; return; }
+    wrap.innerHTML = PROJECTS.filter(function (p) { return p.active !== false; }).map(function (p) {
+      return '<button type="button" class="chip' + (p.id === currentProjectId ? ' on' : '') + '" data-project="' + esc(p.id) + '">' + esc(p.icon) + ' ' + esc(p.name) + '</button>';
+    }).join('');
+    wrap.querySelectorAll('.chip').forEach(function (btn) {
+      btn.addEventListener('click', function () {
+        currentProjectId = btn.getAttribute('data-project');
+        renderQuickCaptureProjectChips();
+        loadIdeaBank();
+        if (S.view === 'content') { reloadPipeline(); loadCalendar(); }
+      });
+    });
+  }
+
   function loadIdeaBank() {
-    call('get_content_pipeline', { p_channel_id: null, p_q: '' }).then(function (res) {
+    if (!currentProjectId) return;
+    call('get_content_pipeline', { p_project_id: currentProjectId, p_channel_id: null, p_q: '' }).then(function (res) {
       if (!res || !res.board) { toast('โหลดคลังไอเดียไม่สำเร็จ (ไม่ได้รับข้อมูลจากเซิร์ฟเวอร์)', true); return; }
       PIPELINE = res.board; SETTINGS = res.settings || SETTINGS;
       IDEA_BANK = res.board.Idea || [];
@@ -619,6 +651,29 @@
     renderMiniCal();
     loadMiniCalEvents();
     setSaveState('');
+    renderReminderBanner();
+  }
+
+  function renderReminderBanner() {
+    var banner = $('reminderBanner');
+    var todayK = todayKeyClient();
+    if (D.date !== todayK) { hide('reminderBanner'); return; }
+    if (D.events && D.events.length) {
+      var list = D.events.map(function (e) { return (e.time ? e.time + ' ' : '') + e.title; }).join(', ');
+      banner.textContent = '🔔 วันนี้: ' + list;
+      show('reminderBanner');
+      return;
+    }
+    hide('reminderBanner');
+    call('get_upcoming_events', { p_from: todayK, p_days: 3 }).then(function (list) {
+      if (D.date !== todayK || (D.events && D.events.length)) return;
+      if (!list || !list.length) return;
+      var next = list[0];
+      var diffDays = Math.round((fromKey(next.date).getTime() - fromKey(todayK).getTime()) / 86400000);
+      var when = diffDays === 1 ? 'พรุ่งนี้' : 'อีก ' + diffDays + ' วัน';
+      banner.textContent = '🔔 ' + when + ': ' + (next.time ? next.time + ' ' : '') + next.title;
+      show('reminderBanner');
+    }).catch(function () {});
   }
 
   function setStatBar(id, done, total) {
@@ -819,22 +874,49 @@
       return;
     }
     wrap.innerHTML = D.events.map(function (e, i) {
-      return '<div class="event-row" data-idx="' + i + '">' +
-        (e.time ? '<span class="event-time">' + esc(e.time) + '</span>' : '<span class="event-time event-time-blank">—</span>') +
+      return '<div class="event-card" data-idx="' + i + '">' +
+        (e.time ? '<span class="event-time">' + esc(e.time) + '</span>' : '<span class="event-time event-time-blank">ไม่ระบุเวลา</span>') +
         '<span class="event-title">' + esc(e.title) + '</span>' +
-        '<button type="button" class="event-del" data-idx="' + i + '" title="ลบ">✕</button>' +
         '</div>';
     }).join('');
-    wrap.querySelectorAll('.event-del').forEach(function (btn, i) {
-      btn.addEventListener('click', function () {
-        D.events.splice(i, 1);
-        renderEventList();
-        markDirty();
-        markMiniCalHasEvent(D.date, D.events.length > 0);
-      });
+    wrap.querySelectorAll('.event-card').forEach(function (card, i) {
+      card.addEventListener('click', function () { openEventDetail(i); });
     });
   }
 
+  var EVENT_DETAIL_IDX = -1;
+
+  function openEventDetail(idx) {
+    EVENT_DETAIL_IDX = idx;
+    var e = D.events[idx];
+    $('eventDetailDate').textContent = formatDayLabel(D.date);
+    $('eventDetailTitle').value = e.title || '';
+    $('eventDetailTime').value = e.time || '';
+    $('eventDetailErr').textContent = '';
+    show('eventDetailOverlay');
+    setTimeout(function () { $('eventDetailTitle').focus(); }, 30);
+  }
+
+  function bindEventDetailModal() {
+    $('eventDetailCancel').addEventListener('click', function () { hide('eventDetailOverlay'); });
+    $('eventDetailOverlay').addEventListener('click', function (e) { if (e.target === $('eventDetailOverlay')) hide('eventDetailOverlay'); });
+    $('eventDetailSave').addEventListener('click', function () {
+      var title = $('eventDetailTitle').value.trim();
+      if (!title) { $('eventDetailErr').textContent = 'กรุณาใส่ชื่อกิจกรรม'; return; }
+      D.events[EVENT_DETAIL_IDX] = { title: title, time: $('eventDetailTime').value || '' };
+      sortEvents(D.events);
+      renderEventList();
+      markDirty();
+      hide('eventDetailOverlay');
+    });
+    $('eventDetailDelete').addEventListener('click', function () {
+      D.events.splice(EVENT_DETAIL_IDX, 1);
+      renderEventList();
+      markDirty();
+      markMiniCalHasEvent(D.date, D.events.length > 0);
+      hide('eventDetailOverlay');
+    });
+  }
 
   var HABIT_ICONS = [
     '<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="5"/><path d="M12 1v3M12 20v3M4.2 4.2l2.1 2.1M17.7 17.7l2.1 2.1M1 12h3M20 12h3M4.2 19.8l2.1-2.1M17.7 6.3l2.1-2.1"/></svg>',
@@ -1132,13 +1214,40 @@
       contentFilter.channelId = k;
       reloadPipeline();
     });
+    $('projectChips').addEventListener('click', function (e) {
+      var pid = e.target.getAttribute('data-project');
+      if (pid) { currentProjectId = pid; renderContentProjectChips(); renderQuickCaptureProjectChips(); loadCalendar(); reloadPipeline(); }
+    });
+    $('addProjectBtn').addEventListener('click', function () {
+      var name = window.prompt('ชื่อโปรเจคใหม่');
+      if (!name || !name.trim()) return;
+      call('create_project', { p_name: name.trim(), p_icon: '📁' }).then(function (res) {
+        return call('get_projects');
+      }).then(function (projects) {
+        PROJECTS = projects || [];
+        var created = PROJECTS[PROJECTS.length - 1];
+        if (created) currentProjectId = created.id;
+        renderContentProjectChips();
+        renderQuickCaptureProjectChips();
+        loadCalendar(); reloadPipeline();
+      }).catch(function (err) { toast(errMsg(err), true); });
+    });
     $('addIdeaBtn').addEventListener('click', function () { openIdeaModal(null); });
     $('calPrev').addEventListener('click', function () { calMonth = prevMonth(calMonth); loadCalendar(); });
     $('calNext').addEventListener('click', function () { calMonth = nextMonth(calMonth); loadCalendar(); });
   }
 
+  function renderContentProjectChips() {
+    var wrap = $('projectChips');
+    if (!wrap) return;
+    wrap.innerHTML = PROJECTS.filter(function (p) { return p.active !== false; }).map(function (p) {
+      return '<button type="button" class="chip' + (p.id === currentProjectId ? ' on' : '') + '" data-project="' + esc(p.id) + '">' + esc(p.icon) + ' ' + esc(p.name) + '</button>';
+    }).join('');
+  }
+
   function loadCalendar() {
-    return call('get_content_calendar', { p_month: calMonth }).then(function (res) {
+    if (!currentProjectId) return Promise.resolve();
+    return call('get_content_calendar', { p_project_id: currentProjectId, p_month: calMonth }).then(function (res) {
       if (!res || !res.byDate) { toast('โหลดปฏิทินคอนเทนต์ไม่สำเร็จ (ไม่ได้รับข้อมูลจากเซิร์ฟเวอร์)', true); return; }
       CAL = res; SETTINGS = res.settings || SETTINGS;
       renderCalendar();
@@ -1170,9 +1279,11 @@
   }
 
   function reloadPipeline() {
-    return call('get_content_pipeline', { p_channel_id: contentFilter.channelId || null, p_q: contentFilter.q || '' }).then(function (res) {
+    if (!currentProjectId) return Promise.resolve();
+    return call('get_content_pipeline', { p_project_id: currentProjectId, p_channel_id: contentFilter.channelId || null, p_q: contentFilter.q || '' }).then(function (res) {
       if (!res || !res.board) { toast('โหลด Pipeline ไม่สำเร็จ (ไม่ได้รับข้อมูลจากเซิร์ฟเวอร์)', true); return; }
       PIPELINE = res.board; SETTINGS = res.settings || SETTINGS;
+      renderContentProjectChips();
       renderChannelChips();
       renderPipelineBoard();
     }).catch(function (err) { toast(errMsg(err), true); });
@@ -1270,7 +1381,8 @@
       p_channel_id: $('ideaChannel').value || null,
       p_stage: $('ideaStage').value,
       p_scheduled_date: $('ideaScheduled').value || null,
-      p_created_from: 'content-planner'
+      p_created_from: 'content-planner',
+      p_project_id: currentProjectId
     };
     $('ideaSave').disabled = true;
     call('save_content_idea', payload).then(function () {

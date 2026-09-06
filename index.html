@@ -84,14 +84,28 @@
     <main class="content-panel">
       <!-- ================= DAILY VIEW ================= -->
       <div id="dailyView">
+        <div id="reminderBanner" class="card reminder-banner hidden"></div>
+
         <div class="card progress-card">
-          <div class="progress-head">
-            <span class="progress-sun">☀️</span>
-            <p class="card-label" style="margin:0;">Overall Progress</p>
-            <span id="progressNums" class="progress-nums"></span>
+          <div class="progress-row">
+            <div class="progress-ring-wrap">
+              <svg id="progressRingSvg" viewBox="0 0 120 120" class="progress-ring">
+                <circle cx="60" cy="60" r="52" class="progress-ring-track"/>
+                <circle id="progressRingFill" cx="60" cy="60" r="52" class="progress-ring-fill"/>
+              </svg>
+              <div class="progress-ring-center">
+                <span class="progress-sun">☀️</span>
+                <span id="progressTotal" class="progress-total">0</span>
+                <span class="progress-total-label">คะแนนสะสม</span>
+              </div>
+            </div>
+            <div class="progress-info">
+              <p id="progressLevel" class="progress-level"></p>
+              <p id="progressNums" class="progress-nums"></p>
+              <p id="progressToday" class="progress-today"></p>
+            </div>
           </div>
-          <div class="progress-track"><div id="progressFill" class="progress-fill" style="width:0%"></div></div>
-          <p id="progressToday" class="progress-today"></p>
+          <p class="progress-legend">ได้คะแนนจาก: สิ่งสำคัญ +10 · กิจวัตร +5 · To-Do +3 · Challenge +5 · บันทึกอารมณ์ +5 (ต่อวัน ไม่มีวันลดลง)</p>
         </div>
 
         <div class="daily-shell">
@@ -130,18 +144,29 @@
                 <button id="dayNext" class="navbtn" type="button">›</button>
               </div>
             </div>
-          </div>
-        </div>
 
-        <div class="card">
-          <p class="card-label">กิจกรรม / นัดหมาย</p>
-          <div id="eventList" class="event-list"></div>
-          <div class="event-add-row">
-            <input id="eventDate" class="text-input event-date-input" type="date" title="วันที่ (ค่าเริ่มต้น = วันที่กำลังดูอยู่)">
-            <input id="eventTime" class="text-input event-time-input" type="time">
-            <input id="eventTitle" class="text-input" type="text" placeholder="ชื่อกิจกรรม/นัดหมาย แล้วกด Enter…" autocomplete="off">
+            <div class="card">
+              <p class="card-label">กิจกรรม / นัดหมาย</p>
+              <div id="eventList" class="event-list"></div>
+              <div class="event-add-row">
+                <div>
+                  <label class="field-label">ชื่อกิจกรรม</label>
+                  <input id="eventTitle" class="text-input" type="text" placeholder="ชื่อกิจกรรม/นัดหมาย แล้วกด Enter…" autocomplete="off">
+                </div>
+                <div class="event-add-fields">
+                  <div>
+                    <label class="field-label">วันที่</label>
+                    <input id="eventDate" class="text-input" type="date" title="วันที่ (ค่าเริ่มต้น = วันที่กำลังดูอยู่)">
+                  </div>
+                  <div>
+                    <label class="field-label">เวลา (ถ้ามี)</label>
+                    <input id="eventTime" class="text-input" type="time">
+                  </div>
+                </div>
+              </div>
+              <p class="muted small-note event-hint">เลือกวันที่ล่วงหน้าได้ ไม่ต้องย้ายไปหน้าวันนั้นก่อน</p>
+            </div>
           </div>
-          <p class="muted small-note event-hint">เลือกวันที่ล่วงหน้าได้ ไม่ต้องย้ายไปหน้าวันนั้นก่อน</p>
         </div>
 
         <div class="card">
@@ -169,6 +194,7 @@
           </div>
           <div class="card">
             <p class="card-label">คลังไอเดียคอนเทนต์</p>
+            <div id="quickCaptureProjects" class="chips quick-capture-projects"></div>
             <input id="quickIdea" class="area-flat quickcapture-input" type="text" placeholder="พิมพ์ไอเดียแล้วกด Enter…" autocomplete="off">
             <div id="ideaBankList" class="idea-bank-list"></div>
             <div id="pipelineSnapshot" class="pipeline-snapshot"></div>
@@ -220,6 +246,14 @@
 
       <!-- ================= CONTENT VIEW ================= -->
       <div id="contentView" class="hidden">
+        <div class="card">
+          <p class="card-label-row">
+            <span class="card-label">โปรเจค</span>
+            <button id="addProjectBtn" class="link-btn small" type="button">+ โปรเจคใหม่</button>
+          </p>
+          <div id="projectChips" class="chips"></div>
+        </div>
+
         <div class="card">
           <div class="content-toolbar">
             <input id="contentSearch" class="search" type="search" placeholder="ค้นหาไอเดียคอนเทนต์…" autocomplete="off">
@@ -387,6 +421,28 @@
     <div class="modal-actions">
       <button id="quickEventCancel" class="btn btn-ghost" type="button">ยกเลิก</button>
       <button id="quickEventSave" class="btn" type="button">เพิ่ม</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===== Modal: รายละเอียดกิจกรรม ===== -->
+<div id="eventDetailOverlay" class="overlay hidden">
+  <div class="modal">
+    <h3>รายละเอียดกิจกรรม</h3>
+    <p id="eventDetailDate" class="muted small-note"></p>
+
+    <label class="field-label">ชื่อกิจกรรม</label>
+    <input id="eventDetailTitle" class="text-input" type="text" placeholder="ชื่อกิจกรรม/นัดหมาย">
+
+    <label class="field-label">เวลา (ถ้ามี)</label>
+    <input id="eventDetailTime" class="text-input" type="time">
+
+    <div id="eventDetailErr" class="modal-err"></div>
+
+    <div class="modal-actions modal-actions-3">
+      <button id="eventDetailDelete" class="btn btn-ghost" type="button">ลบ</button>
+      <button id="eventDetailCancel" class="btn btn-ghost" type="button">ยกเลิก</button>
+      <button id="eventDetailSave" class="btn" type="button">บันทึก</button>
     </div>
   </div>
 </div>
