@@ -48,21 +48,32 @@
 
   /* ================= MOOD TRACKER ================= */
   var MOODS = [
-    { key: 'awful', label: 'Awful', color: '#D6BEEA', mouth: -6 },
-    { key: 'bad', label: 'Bad', color: '#7FB9E6', mouth: -3 },
-    { key: 'okay', label: 'Okay', color: '#F4D77A', mouth: 0 },
-    { key: 'good', label: 'Good', color: '#B7C96A', mouth: 3 },
-    { key: 'great', label: 'Great', color: '#FF8F45', mouth: 6 }
+    { key: 'awful', label: 'Awful', color: '#D6BEEA', shape: 'hex', mouth: -6 },
+    { key: 'bad', label: 'Bad', color: '#7FB9E6', shape: 'square', mouth: -3 },
+    { key: 'okay', label: 'Okay', color: '#F4D77A', shape: 'circle', mouth: 0 },
+    { key: 'good', label: 'Good', color: '#B7C96A', shape: 'flag', mouth: 3 },
+    { key: 'great', label: 'Great', color: '#FF8F45', shape: 'triangle', mouth: 6 }
   ];
   var MOOD_BY_KEY = {};
   MOODS.forEach(function (m) { MOOD_BY_KEY[m.key] = m; });
 
+  function moodShapeSvg(shape, color) {
+    switch (shape) {
+      case 'square': return '<rect x="1" y="1" width="38" height="38" rx="13" fill="' + color + '"/>';
+      case 'hex': return '<polygon points="10,2 30,2 38,20 30,38 10,38 2,20" fill="' + color + '"/>';
+      case 'triangle': return '<polygon points="20,3 37,35 3,35" fill="' + color + '" stroke="' + color + '" stroke-width="6" stroke-linejoin="round"/>';
+      case 'flag': return '<polygon points="4,4 36,4 36,23 20,36 4,23" fill="' + color + '"/>';
+      default: return '<circle cx="20" cy="20" r="19" fill="' + color + '"/>';
+    }
+  }
+
   function moodFaceSvg(mood, size) {
     size = size || 40;
     var mouthPath = 'M13 23q7 ' + mood.mouth + ' 14 0';
+    var eyeY = mood.shape === 'flag' ? 15 : 17;
     return '<svg viewBox="0 0 40 40" width="' + size + '" height="' + size + '" xmlns="http://www.w3.org/2000/svg">' +
-      '<circle cx="20" cy="20" r="19" fill="' + mood.color + '"/>' +
-      '<circle cx="14.5" cy="17" r="1.8" fill="#2E2A4D"/><circle cx="25.5" cy="17" r="1.8" fill="#2E2A4D"/>' +
+      moodShapeSvg(mood.shape, mood.color) +
+      '<circle cx="14.5" cy="' + eyeY + '" r="1.8" fill="#2E2A4D"/><circle cx="25.5" cy="' + eyeY + '" r="1.8" fill="#2E2A4D"/>' +
       '<path d="' + mouthPath + '" fill="none" stroke="#2E2A4D" stroke-width="2" stroke-linecap="round"/>' +
       '</svg>';
   }
