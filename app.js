@@ -352,10 +352,27 @@
     window.scrollTo(0, 0);
   }
 
+  /* ---------- shared save-status icon (Brain Dump / week notes) ---------- */
+  function saveIconGlyph(text) {
+    text = text || '';
+    if (text.indexOf('ไม่สำเร็จ') >= 0) return { glyph: '⚠', cls: 'is-err' };
+    if (text.indexOf('กำลังพิมพ์') >= 0) return { glyph: '✎', cls: '' };
+    if (text.indexOf('กำลังบันทึก') >= 0) return { glyph: '⏳', cls: '' };
+    if (text.indexOf('บันทึกแล้ว') >= 0) return { glyph: '✓', cls: 'is-saved' };
+    return { glyph: '', cls: '' };
+  }
+  function setSaveIcon(id, text) {
+    var el = $(id);
+    if (!el) return;
+    var s = saveIconGlyph(text);
+    el.textContent = s.glyph;
+    el.className = 'save-icon' + (s.cls ? ' ' + s.cls : '');
+  }
+
   /* ================= DAILY ================= */
   var dailySaveTimer = null, dailyDirty = false;
 
-  function setSaveState(text) { $('dailySaveState').textContent = text || ' '; }
+  function setSaveState(text) { $('dailySaveState').textContent = text || ' '; setSaveIcon('brainDumpSaveIcon', text); }
 
   function markDirty() {
     dailyDirty = true;
@@ -1009,7 +1026,11 @@
   /* ================= WEEKLY ================= */
   var weekSaveTimer = null, weekDirty = false;
 
-  function setWeekSaveState(text) { $('weekSaveState').textContent = text || ' '; }
+  function setWeekSaveState(text) {
+    $('weekSaveState').textContent = text || ' ';
+    setSaveIcon('weekReflectionSaveIcon', text);
+    setSaveIcon('weekGoalsSaveIcon', text);
+  }
 
   function markWeekDirty() {
     weekDirty = true;
