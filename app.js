@@ -175,6 +175,14 @@
     });
     $('addMediaBtn').addEventListener('click', function () { openMediaModal(null); });
     renderMediaRatingStars();
+    $('mediaImageFile').addEventListener('change', function () {
+      var file = this.files && this.files[0];
+      if (!file) return;
+      var url = URL.createObjectURL(file);
+      var img = $('mediaImagePreview');
+      img.src = url;
+      img.classList.remove('hidden');
+    });
     $('mediaCancel').addEventListener('click', function () { hide('mediaOverlay'); });
     $('mediaOverlay').addEventListener('click', function (e) { if (e.target === $('mediaOverlay')) hide('mediaOverlay'); });
     $('mediaSave').addEventListener('click', submitMediaSave);
@@ -213,6 +221,7 @@
     wrap.innerHTML = MEDIA_LIST.map(function (m) {
       var stars = m.rating ? '★'.repeat(m.rating) + '☆'.repeat(5 - m.rating) : '';
       return '<div class="media-card" data-id="' + esc(m.id) + '">' +
+        (m.imageUrl ? '<img class="media-card-cover" src="' + esc(m.imageUrl) + '" alt="">' : '') +
         '<div class="media-card-title">' + esc(m.title) + '</div>' +
         '<div class="media-card-tags">' +
           (m.kind ? '<span class="media-tag">' + esc(m.kind) + '</span>' : '') +
@@ -255,6 +264,10 @@
     $('mediaGenre').value = item ? (item.genre || '') : '';
     $('mediaReview').value = item ? (item.review || '') : '';
     $('mediaWatchedDate').value = item ? (item.watchedDate || '') : '';
+    $('mediaImageFile').value = '';
+    var preview = $('mediaImagePreview');
+    if (item && item.imageUrl) { preview.src = item.imageUrl; preview.classList.remove('hidden'); }
+    else { preview.src = ''; preview.classList.add('hidden'); }
     mediaRatingValue = item ? (item.rating || 0) : 0;
     renderMediaRatingStars();
     $('mediaErr').textContent = '';
@@ -263,20 +276,35 @@
     setTimeout(function () { $('mediaTitle').focus(); }, 30);
   }
 
+  function uploadMediaCoverIfAny() {
+    var file = $('mediaImageFile').files && $('mediaImageFile').files[0];
+    if (!file || !CURRENT_USER_ID) return Promise.resolve(null);
+    var ext = (file.name.split('.').pop() || 'jpg').toLowerCase();
+    var path = CURRENT_USER_ID + '/' + Date.now() + '-' + Math.random().toString(36).slice(2) + '.' + ext;
+    return supabase.storage.from('media-covers').upload(path, file, { upsert: false }).then(function (res) {
+      if (res.error) throw res.error;
+      var pub = supabase.storage.from('media-covers').getPublicUrl(path);
+      return pub.data.publicUrl;
+    });
+  }
+
   function submitMediaSave() {
     var title = $('mediaTitle').value.trim();
     if (!title) { $('mediaErr').textContent = 'กรุณาใส่ชื่อเรื่อง'; return; }
-    var payload = {
-      p_id: MEDIA_EDIT ? MEDIA_EDIT.id : null,
-      p_title: title,
-      p_kind: $('mediaKind').value.trim(),
-      p_genre: $('mediaGenre').value.trim(),
-      p_rating: mediaRatingValue || null,
-      p_review: $('mediaReview').value.trim(),
-      p_watched_date: $('mediaWatchedDate').value || null
-    };
     $('mediaSave').disabled = true;
-    call('save_media', payload).then(function () {
+    uploadMediaCoverIfAny().then(function (imageUrl) {
+      var payload = {
+        p_id: MEDIA_EDIT ? MEDIA_EDIT.id : null,
+        p_title: title,
+        p_kind: $('mediaKind').value.trim(),
+        p_genre: $('mediaGenre').value.trim(),
+        p_rating: mediaRatingValue || null,
+        p_review: $('mediaReview').value.trim(),
+        p_watched_date: $('mediaWatchedDate').value || null,
+        p_image_url: imageUrl
+      };
+      return call('save_media', payload);
+    }).then(function () {
       $('mediaSave').disabled = false;
       hide('mediaOverlay');
       toast('บันทึกแล้ว');
@@ -429,11 +457,14 @@
   }
 
   /* ================= BOOT ================= */
+  var CURRENT_USER_ID = null;
+
   function start() {
     bindLogin();
     supabase.auth.getSession().then(function (res) {
       var session = res.data && res.data.session;
       if (session) {
+        CURRENT_USER_ID = session.user && session.user.id;
         bootApp();
       } else {
         hide('loading');
