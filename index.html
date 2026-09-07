@@ -97,6 +97,11 @@
           <p class="progress-legend">ได้คะแนนจาก: สิ่งสำคัญ +10 · กิจวัตร +5 · To-Do +3 · Challenge +5 · บันทึกอารมณ์ +5 (ต่อวัน ไม่มีวันลดลง)</p>
         </div>
 
+        <div class="card">
+          <p class="card-label">กิจวัตรประจำวัน</p>
+          <div id="habitList" class="habit-grid"></div>
+        </div>
+
         <div class="daily-shell">
           <div class="daily-left">
             <div class="card mini-cal">
@@ -127,7 +132,7 @@
               <div class="day-nav">
                 <button id="dayPrev" class="navbtn" type="button">‹</button>
                 <div class="daylabel-wrap">
-                  <span id="dayLabel" class="daylabel"></span>
+                  <span id="dayLabel" class="daylabel hidden"></span>
                   <button id="dayToday" class="link-btn small" type="button">วันนี้</button>
                 </div>
                 <button id="dayNext" class="navbtn" type="button">›</button>
@@ -175,11 +180,6 @@
             <span id="brainDumpSaveIcon" class="save-icon"></span>
           </p>
           <textarea id="brainDump" class="area-flat braindump-area" placeholder="พิมพ์อะไรก็ได้ตรงนี้…"></textarea>
-        </div>
-
-        <div class="card">
-          <p class="card-label">กิจวัตรประจำวัน</p>
-          <div id="habitList" class="habit-grid"></div>
         </div>
 
         <div id="dailyChallengeCard" class="card hidden">
