@@ -413,7 +413,7 @@
       p_brain_dump: D.brainDump || '',
       p_habits: D.habits.map(function (h) { return { itemKey: h.itemKey, checked: !!h.checked }; }),
       p_todos: D.todos.map(function (t) { return { text: t.text || '', done: !!t.done }; }),
-      p_events: D.events.map(function (e) { return { time: e.time || '', title: e.title || '' }; })
+      p_events: D.events.map(function (e) { return { id: e.id || null, time: e.time || '', title: e.title || '' }; })
     };
   }
 
@@ -476,9 +476,16 @@
   }
 
   /** เพิ่มกิจกรรมให้วันไหนก็ได้ — วันเดียวกับที่กำลังดูอยู่จะรีเฟรชในหน้าทันที, วันอื่นยิงตรงไปที่ฐานข้อมูล */
-  function addEventCore(targetDate, time, title) {
+  function parseRepeatValue(v) {
+    if (!v) return null;
+    var parts = v.split(':');
+    return { unit: parts[0], every: Number(parts[1]) || 1 };
+  }
+
+  /** เพิ่มกิจกรรมให้วันไหนก็ได้ — ถ้าไม่ทำซ้ำและเป็นวันเดียวกับที่ดูอยู่ จะรีเฟรชในหน้าทันที, กรณีอื่น (รวมถึงทุกกรณีที่ทำซ้ำ) ยิงตรงไปเซิร์ฟเวอร์แล้วโหลดใหม่ */
+  function addEventCore(targetDate, time, title, repeat) {
     return new Promise(function (resolve, reject) {
-      if (D && targetDate === D.date) {
+      if (!repeat && D && targetDate === D.date) {
         D.events.push({ time: time, title: title });
         sortEvents(D.events);
         renderEventList();
@@ -486,8 +493,11 @@
         markMiniCalHasEvent(targetDate, true);
         resolve({ sameDay: true });
       } else {
-        call('add_event_to_date', { p_date: targetDate, p_time: time, p_title: title }).then(function () {
+        var params = { p_date: targetDate, p_time: time, p_title: title };
+        if (repeat) { params.p_repeat_unit = repeat.unit; params.p_repeat_every = repeat.every; }
+        call('add_event_to_date', params).then(function () {
           markMiniCalHasEvent(targetDate, true);
+          if (D && targetDate === D.date) loadDaily(D.date);
           resolve({ sameDay: false });
         }).catch(reject);
       }
@@ -498,14 +508,16 @@
     var dateInput = $('eventDate');
     var titleInput = $('eventTitle');
     var timeInput = $('eventTime');
+    var repeatInput = $('eventRepeat');
     var title = titleInput.value.trim();
     if (!title) return;
     var time = timeInput.value || '';
     var targetDate = dateInput.value || D.date;
-    titleInput.value = ''; timeInput.value = '';
-    addEventCore(targetDate, time, title).then(function (res) {
+    var repeat = parseRepeatValue(repeatInput.value);
+    titleInput.value = ''; timeInput.value = ''; repeatInput.value = '';
+    addEventCore(targetDate, time, title, repeat).then(function (res) {
       if (!res.sameDay) {
-        toast('เพิ่มกิจกรรมวันที่ ' + formatDayLabel(targetDate) + ' แล้ว');
+        toast((repeat ? 'ตั้งกิจกรรมทำซ้ำเริ่มวันที่ ' : 'เพิ่มกิจกรรมวันที่ ') + formatDayLabel(targetDate) + ' แล้ว');
         dateInput.value = D.date;
       }
     }).catch(function (err) { toast(errMsg(err), true); });
@@ -522,6 +534,7 @@
     $('quickEventTitle').value = '';
     $('quickEventDate').value = D ? D.date : todayKeyClient();
     $('quickEventTime').value = '';
+    $('quickEventRepeat').value = '';
     $('quickEventErr').textContent = '';
     show('quickEventOverlay');
     setTimeout(function () { $('quickEventTitle').focus(); }, 30);
@@ -542,11 +555,12 @@
     if (!title) { $('quickEventErr').textContent = 'กรุณาใส่ชื่อกิจกรรม'; return; }
     var targetDate = $('quickEventDate').value || (D ? D.date : todayKeyClient());
     var time = $('quickEventTime').value || '';
+    var repeat = parseRepeatValue($('quickEventRepeat').value);
     $('quickEventSave').disabled = true;
-    addEventCore(targetDate, time, title).then(function () {
+    addEventCore(targetDate, time, title, repeat).then(function () {
       $('quickEventSave').disabled = false;
       hide('quickEventOverlay');
-      toast('เพิ่มกิจกรรมวันที่ ' + formatDayLabel(targetDate) + ' แล้ว');
+      toast((repeat ? 'ตั้งกิจกรรมทำซ้ำเริ่มวันที่ ' : 'เพิ่มกิจกรรมวันที่ ') + formatDayLabel(targetDate) + ' แล้ว');
     }).catch(function (err) {
       $('quickEventSave').disabled = false;
       $('quickEventErr').textContent = errMsg(err);
@@ -893,6 +907,8 @@
     $('eventDetailTitle').value = e.title || '';
     $('eventDetailTime').value = e.time || '';
     $('eventDetailErr').textContent = '';
+    $('eventDetailRepeatNote').classList.toggle('hidden', !e.recurrenceId);
+    $('eventDetailDeleteSeries').classList.toggle('hidden', !e.recurrenceId);
     show('eventDetailOverlay');
     setTimeout(function () { $('eventDetailTitle').focus(); }, 30);
   }
@@ -902,8 +918,9 @@
     $('eventDetailOverlay').addEventListener('click', function (e) { if (e.target === $('eventDetailOverlay')) hide('eventDetailOverlay'); });
     $('eventDetailSave').addEventListener('click', function () {
       var title = $('eventDetailTitle').value.trim();
-      if (!title) { $('eventDetailErr').textContent = 'กรุณาใส่ชื่อกิจกรรม'; return; }
-      D.events[EVENT_DETAIL_IDX] = { title: title, time: $('eventDetailTime').value || '' };
+      if (!title) { $('eventDetailErr').textContent = 'กรุณาใส่หัวข้อ'; return; }
+      var old = D.events[EVENT_DETAIL_IDX];
+      D.events[EVENT_DETAIL_IDX] = { id: old.id, recurrenceId: old.recurrenceId, title: title, time: $('eventDetailTime').value || '' };
       sortEvents(D.events);
       renderEventList();
       markDirty();
@@ -915,6 +932,16 @@
       markDirty();
       markMiniCalHasEvent(D.date, D.events.length > 0);
       hide('eventDetailOverlay');
+    });
+    $('eventDetailDeleteSeries').addEventListener('click', function () {
+      var e = D.events[EVENT_DETAIL_IDX];
+      if (!e || !e.recurrenceId) return;
+      if (!window.confirm('ลบกิจกรรมทำซ้ำนี้ทั้งหมด (ตั้งแต่วันนี้เป็นต้นไป) ใช่ไหม?')) return;
+      call('delete_event_series', { p_recurrence_id: e.recurrenceId }).then(function () {
+        toast('ลบซีรีส์แล้ว');
+        hide('eventDetailOverlay');
+        loadDaily(D.date);
+      }).catch(function (err) { toast(errMsg(err), true); });
     });
   }
 

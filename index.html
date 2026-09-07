@@ -163,6 +163,17 @@
                     <input id="eventTime" class="text-input" type="time">
                   </div>
                 </div>
+                <div>
+                  <label class="field-label">ทำซ้ำ</label>
+                  <select id="eventRepeat" class="text-input">
+                    <option value="">ไม่ซ้ำ</option>
+                    <option value="week:1">ทุกสัปดาห์</option>
+                    <option value="month:1">ทุกเดือน</option>
+                    <option value="month:3">ทุก 3 เดือน</option>
+                    <option value="month:6">ทุก 6 เดือน</option>
+                    <option value="year:1">ทุกปี</option>
+                  </select>
+                </div>
               </div>
               <p class="muted small-note event-hint">เลือกวันที่ล่วงหน้าได้ ไม่ต้องย้ายไปหน้าวันนั้นก่อน</p>
             </div>
@@ -416,6 +427,16 @@
       </div>
     </div>
 
+    <label class="field-label">ทำซ้ำ</label>
+    <select id="quickEventRepeat" class="text-input">
+      <option value="">ไม่ซ้ำ</option>
+      <option value="week:1">ทุกสัปดาห์</option>
+      <option value="month:1">ทุกเดือน</option>
+      <option value="month:3">ทุก 3 เดือน</option>
+      <option value="month:6">ทุก 6 เดือน</option>
+      <option value="year:1">ทุกปี</option>
+    </select>
+
     <div id="quickEventErr" class="modal-err"></div>
 
     <div class="modal-actions">
@@ -437,10 +458,13 @@
     <label class="field-label">เวลา (ถ้ามี)</label>
     <input id="eventDetailTime" class="text-input" type="time">
 
+    <p id="eventDetailRepeatNote" class="muted small-note hidden">🔁 กิจกรรมนี้ทำซ้ำอัตโนมัติ</p>
+
     <div id="eventDetailErr" class="modal-err"></div>
 
     <div class="modal-actions modal-actions-3">
-      <button id="eventDetailDelete" class="btn btn-ghost" type="button">ลบ</button>
+      <button id="eventDetailDelete" class="btn btn-ghost" type="button">ลบครั้งนี้</button>
+      <button id="eventDetailDeleteSeries" class="btn btn-ghost hidden" type="button">ลบทั้งหมด (ซีรีส์)</button>
       <button id="eventDetailCancel" class="btn btn-ghost" type="button">ยกเลิก</button>
       <button id="eventDetailSave" class="btn" type="button">บันทึก</button>
     </div>
