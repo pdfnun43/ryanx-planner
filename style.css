@@ -536,6 +536,19 @@ textarea.text-input{resize:vertical;line-height:1.6;}
 .progress-today{font-size:12.5px;color:var(--ink-soft);margin:0;}
 .progress-legend{margin:14px 0 0;font-size:11px;color:var(--ink-soft);text-align:center;line-height:1.6;}
 
+/* ===== weight tracker ===== */
+.weight-input-row{display:flex;align-items:center;gap:10px;flex-wrap:wrap;}
+.weight-input-row .text-input{width:110px;flex:none;}
+.weight-input-row .muted{margin-left:4px;}
+
+/* ===== quick check-in (Daily view shortcut) ===== */
+.quick-checkin-row{display:flex;gap:24px;flex-wrap:wrap;align-items:flex-start;}
+.mood-grid-mini{gap:6px;}
+.mood-grid-mini .mood-btn{padding:4px;gap:3px;}
+.mood-grid-mini .mood-btn svg{width:24px;height:24px;}
+.mood-grid-mini .mood-label{font-size:8px;}
+.quick-checkin-weight{flex:1;min-width:180px;}
+
 /* ===== mood tracker ===== */
 .mood-grid{display:flex;flex-wrap:wrap;gap:18px;}
 .mood-btn{

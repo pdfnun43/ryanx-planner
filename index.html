@@ -113,6 +113,26 @@
           <div id="habitList" class="habit-grid"></div>
         </div>
 
+        <div class="card">
+          <p class="card-label">เช็คอินวันนี้</p>
+          <div class="quick-checkin-row">
+            <div id="dailyMoodPicker" class="mood-grid mood-grid-mini"></div>
+            <div class="quick-checkin-weight">
+              <label class="field-label">น้ำหนัก (กก.)</label>
+              <div class="weight-input-row">
+                <input id="dailyWeightInput" class="text-input" type="number" step="0.1" min="0" placeholder="กก.">
+                <button id="dailyWeightSaveBtn" class="btn small" type="button">บันทึก</button>
+              </div>
+              <span id="dailyWeightMsg" class="muted small-note"></span>
+            </div>
+          </div>
+        </div>
+
+        <div id="dailyChallengeCard" class="card hidden">
+          <p class="card-label">ท้าทายที่กำลังทำอยู่</p>
+          <div id="dailyChallengeList" class="daily-challenge-list"></div>
+        </div>
+
         <div class="daily-shell">
           <div class="daily-left">
             <div class="card mini-cal">
@@ -180,11 +200,6 @@
             <span id="brainDumpSaveIcon" class="save-icon"></span>
           </p>
           <textarea id="brainDump" class="area-flat braindump-area" placeholder="พิมพ์อะไรก็ได้ตรงนี้…"></textarea>
-        </div>
-
-        <div id="dailyChallengeCard" class="card hidden">
-          <p class="card-label">ท้าทายที่กำลังทำอยู่</p>
-          <div id="dailyChallengeList" class="daily-challenge-list"></div>
         </div>
 
         <div class="daily-row-2">
@@ -308,6 +323,16 @@
             <button id="moodWeekNext" class="navbtn" type="button">›</button>
           </div>
           <svg id="moodAnalysisSvg" viewBox="0 0 700 190" style="width:100%;height:auto;"></svg>
+        </div>
+
+        <div class="card">
+          <p class="card-label">น้ำหนัก</p>
+          <div class="weight-input-row">
+            <input id="weightInput" class="text-input" type="number" step="0.1" min="0" placeholder="กก.">
+            <button id="weightSaveBtn" class="btn small" type="button">บันทึก</button>
+            <span id="weightSaveMsg" class="muted small-note"></span>
+          </div>
+          <svg id="weightChartSvg" viewBox="0 0 700 190" style="width:100%;height:auto;margin-top:14px;"></svg>
         </div>
       </div>
 

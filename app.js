@@ -99,6 +99,27 @@
     });
   }
 
+  function renderDailyMoodPicker() {
+    var wrap = $('dailyMoodPicker');
+    if (!wrap || !D) return;
+    wrap.innerHTML = MOODS.map(function (m) {
+      return '<button type="button" class="mood-btn' + (D.mood === m.key ? ' selected' : '') + '" data-mood="' + m.key + '">' +
+        moodFaceSvg(m, 24) + '<span class="mood-label">' + m.label + '</span></button>';
+    }).join('');
+    wrap.querySelectorAll('.mood-btn').forEach(function (btn) {
+      btn.addEventListener('click', function () {
+        var key = btn.getAttribute('data-mood');
+        var dateKey = D.date;
+        D.mood = D.mood === key ? '' : key;
+        renderDailyMoodPicker();
+        call('set_mood', { p_date: dateKey, p_mood_key: D.mood }).then(function () {
+          loadPoints();
+          if (dateKey === todayKeyClient()) { MOOD_TODAY = D.mood; }
+        }).catch(function (err) { toast(errMsg(err), true); });
+      });
+    });
+  }
+
   var MOOD_TODAY = '';
   var moodWeekStart = '';
 
@@ -150,6 +171,64 @@
       renderMoodCheckin();
     }).catch(function () {});
     loadMoodWeek();
+    loadWeightHistory();
+  }
+
+  /* ================= WEIGHT TRACKER ================= */
+  var WEIGHT_DAYS = 30;
+
+  function bindWeight() {
+    $('weightSaveBtn').addEventListener('click', function () { submitWeight($('weightInput'), $('weightSaveMsg'), todayKeyClient()); });
+    $('dailyWeightSaveBtn').addEventListener('click', function () { submitWeight($('dailyWeightInput'), $('dailyWeightMsg'), D.date); });
+  }
+
+  function submitWeight(input, msgEl, dateKey) {
+    var val = Number(input.value);
+    if (!val || val <= 0) { msgEl.textContent = 'กรุณาใส่น้ำหนัก'; return; }
+    call('set_weight', { p_date: dateKey, p_weight_kg: val }).then(function () {
+      msgEl.textContent = 'บันทึกแล้ว ✓';
+      if (D && dateKey === D.date) D.weightKg = val;
+      if (S.view === 'mood') loadWeightHistory();
+    }).catch(function (err) { msgEl.textContent = errMsg(err); });
+  }
+
+  function loadWeightHistory() {
+    call('get_weight_history', { p_days: WEIGHT_DAYS }).then(function (res) {
+      $('weightInput').value = res.todayWeight != null ? res.todayWeight : '';
+      renderWeightChart(res.history || []);
+    }).catch(function (err) { toast(errMsg(err), true); });
+  }
+
+  function renderWeightChart(history) {
+    var svg = $('weightChartSvg');
+    if (!history.length) { svg.innerHTML = '<text x="350" y="95" text-anchor="middle" font-size="13" fill="#6B6690" font-family="Kanit,sans-serif">ยังไม่มีข้อมูล — ลองบันทึกน้ำหนักวันนี้ดู</text>'; return; }
+    var w = 700, h = 190, padX = 40, padTop = 20, padBottom = 26;
+    var todayK = todayKeyClient();
+    var startK = addDays(todayK, -(WEIGHT_DAYS - 1));
+    var totalDays = WEIGHT_DAYS - 1;
+    var weights = history.map(function (p) { return p.weightKg; });
+    var minW = Math.min.apply(null, weights), maxW = Math.max.apply(null, weights);
+    if (minW === maxW) { minW -= 1; maxW += 1; }
+    var pad = (maxW - minW) * 0.15;
+    minW -= pad; maxW += pad;
+    function xFor(dateKey) {
+      var offset = Math.round((fromKey(dateKey).getTime() - fromKey(startK).getTime()) / 86400000);
+      return padX + (offset / totalDays) * (w - padX * 2);
+    }
+    function yFor(val) {
+      return h - padBottom - ((val - minW) / (maxW - minW)) * (h - padTop - padBottom);
+    }
+    var pathD = history.map(function (p, i) { return (i === 0 ? 'M' : 'L') + xFor(p.date) + ' ' + yFor(p.weightKg); }).join(' ');
+    var line = '<path d="' + pathD + '" fill="none" stroke="' + 'var(--panel)'.replace('var(--panel)', '#7FB9E6') + '" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>';
+    var dots = history.map(function (p) {
+      return '<circle cx="' + xFor(p.date) + '" cy="' + yFor(p.weightKg) + '" r="4.5" fill="#FF8F45"/>';
+    }).join('');
+    var labels = history.map(function (p) {
+      return '<text x="' + xFor(p.date) + '" y="' + (h - 6) + '" text-anchor="middle" font-size="9.5" fill="#6B6690" font-family="Kanit,sans-serif">' + p.date.slice(5) + '</text>';
+    }).join('');
+    var latest = history[history.length - 1];
+    var latestLabel = '<text x="' + xFor(latest.date) + '" y="' + (yFor(latest.weightKg) - 12) + '" text-anchor="middle" font-size="12" font-weight="600" fill="#2E2A4D" font-family="Kanit,sans-serif">' + latest.weightKg + ' กก.</text>';
+    svg.innerHTML = line + dots + labels + latestLabel;
   }
 
   /* ================= MEDIA COLLECTION ================= */
@@ -485,6 +564,7 @@
     bindEventDetailModal();
     bindChallenge();
     bindMood();
+    bindWeight();
     bindMedia();
     renderMediaKindChips();
     bindLogout();
@@ -826,6 +906,9 @@
     $('brainDump').value = D.brainDump || '';
     renderQuickLinks();
     renderHabitGrid(D.habits);
+    renderDailyMoodPicker();
+    $('dailyWeightInput').value = D.weightKg != null ? D.weightKg : '';
+    $('dailyWeightMsg').textContent = '';
     renderDailyChallenges(D.activeChallenges || []);
     renderPipelineSnapshot(D.pipelineCounts, 'pipelineSnapshot');
     updateHeaderStats();
