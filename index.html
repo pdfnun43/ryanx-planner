@@ -73,6 +73,17 @@
     <main class="content-panel">
       <!-- ================= DAILY VIEW ================= -->
       <div id="dailyView">
+        <div class="card">
+          <div class="day-nav">
+            <button id="dayPrev" class="navbtn" type="button">‹</button>
+            <div class="daylabel-wrap">
+              <span id="dayLabel" class="daylabel"></span>
+              <button id="dayToday" class="link-btn small" type="button">วันนี้</button>
+            </div>
+            <button id="dayNext" class="navbtn" type="button">›</button>
+          </div>
+        </div>
+
         <div id="reminderBanner" class="card reminder-banner hidden"></div>
 
         <div class="card progress-card">
@@ -128,17 +139,6 @@
           </div>
 
           <div class="daily-main">
-            <div class="card">
-              <div class="day-nav">
-                <button id="dayPrev" class="navbtn" type="button">‹</button>
-                <div class="daylabel-wrap">
-                  <span id="dayLabel" class="daylabel hidden"></span>
-                  <button id="dayToday" class="link-btn small" type="button">วันนี้</button>
-                </div>
-                <button id="dayNext" class="navbtn" type="button">›</button>
-              </div>
-            </div>
-
             <div class="card">
               <p class="card-label">กิจกรรม / นัดหมาย</p>
               <div id="eventList" class="event-list"></div>
