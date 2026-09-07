@@ -43,6 +43,7 @@
       <button class="sidebar-btn view-switch-btn" data-view="content" type="button" title="คอนเทนต์">✎</button>
       <button class="sidebar-btn view-switch-btn" data-view="challenge" type="button" title="ท้าทาย">◆</button>
       <button class="sidebar-btn view-switch-btn" data-view="mood" type="button" title="อารมณ์">☺</button>
+      <button class="sidebar-btn view-switch-btn" data-view="collection" type="button" title="คอลเลกชัน">📚</button>
     </nav>
     <div class="sidebar-spacer"></div>
     <button id="settingsBtn" class="sidebar-btn" type="button" title="แก้ไขรายการ">⚙</button>
@@ -62,6 +63,7 @@
             <button class="vtab-pill view-switch-btn" data-view="content" type="button">คอนเทนต์</button>
             <button class="vtab-pill view-switch-btn" data-view="challenge" type="button">ท้าทาย</button>
             <button class="vtab-pill view-switch-btn" data-view="mood" type="button">อารมณ์</button>
+            <button class="vtab-pill view-switch-btn" data-view="collection" type="button">คอลเลกชัน</button>
           </div>
           <button id="quickEventBtn" class="btn small quick-event-btn" type="button">+ กิจกรรมด่วน</button>
         </div>
@@ -321,6 +323,18 @@
           <svg id="moodAnalysisSvg" viewBox="0 0 700 190" style="width:100%;height:auto;"></svg>
         </div>
       </div>
+
+      <!-- ================= COLLECTION VIEW ================= -->
+      <div id="collectionView" class="hidden">
+        <div class="card">
+          <div class="content-toolbar">
+            <input id="mediaSearch" class="search" type="search" placeholder="ค้นหาชื่อเรื่อง/แนว…" autocomplete="off">
+            <div id="mediaKindChips" class="chips"></div>
+            <button id="addMediaBtn" class="btn small" type="button">+ เพิ่ม</button>
+          </div>
+        </div>
+        <div id="mediaList" class="media-list"></div>
+      </div>
     </main>
   </div>
 </div>
@@ -477,16 +491,80 @@
     <h3>สร้าง Challenge ใหม่</h3>
 
     <label class="field-label">ชื่อ Challenge</label>
-    <input id="challengeName" class="text-input" type="text" placeholder="เช่น ออกกำลังกาย 30 วัน">
+    <input id="challengeName" class="text-input" type="text" placeholder="เช่น ออกกำลังกาย, ดื่มน้ำ">
 
-    <label class="field-label">ระยะเวลา (วัน)</label>
-    <input id="challengeDuration" class="text-input" type="number" min="1" value="30">
+    <label class="field-label">รูปแบบ</label>
+    <div class="chips" id="challengeTypeChips">
+      <button type="button" class="chip on" data-type="daily">ตามวัน (เช็คทุกวัน)</button>
+      <button type="button" class="chip" data-type="counter">สะสมจำนวน (ได้เหรียญ)</button>
+    </div>
+
+    <div id="challengeDailyFields">
+      <label class="field-label">ระยะเวลา (วัน)</label>
+      <input id="challengeDuration" class="text-input" type="number" min="1" value="30">
+    </div>
+
+    <div id="challengeCounterFields" class="hidden">
+      <div class="modal-row">
+        <div>
+          <label class="field-label">หน่วยนับ</label>
+          <input id="challengeUnitLabel" class="text-input" type="text" placeholder="เช่น แก้ว, นาที">
+        </div>
+        <div>
+          <label class="field-label">กี่หน่วย = 1 เหรียญ</label>
+          <input id="challengeMilestone" class="text-input" type="number" min="1" value="10">
+        </div>
+      </div>
+    </div>
 
     <div id="challengeErr" class="modal-err"></div>
 
     <div class="modal-actions">
       <button id="challengeCancel" class="btn btn-ghost" type="button">ยกเลิก</button>
       <button id="challengeSave" class="btn" type="button">สร้าง</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===== Modal: เพิ่ม/แก้ไข คอลเลกชัน ===== -->
+<div id="mediaOverlay" class="overlay hidden">
+  <div class="modal">
+    <h3 id="mediaModalTitle">เพิ่มหนังสือ/หนัง</h3>
+
+    <label class="field-label">ชื่อเรื่อง</label>
+    <input id="mediaTitle" class="text-input" type="text" placeholder="ชื่อหนังสือ/หนัง/ซีรีส์">
+
+    <div class="modal-row">
+      <div>
+        <label class="field-label">ประเภท</label>
+        <input id="mediaKind" class="text-input" type="text" list="mediaKindList" placeholder="หนังสือ / หนัง / ซีรีส์">
+        <datalist id="mediaKindList">
+          <option value="หนังสือ"></option>
+          <option value="หนัง"></option>
+          <option value="ซีรีส์"></option>
+        </datalist>
+      </div>
+      <div>
+        <label class="field-label">แนว (Genre)</label>
+        <input id="mediaGenre" class="text-input" type="text" placeholder="เช่น ดราม่า, สยองขวัญ">
+      </div>
+    </div>
+
+    <label class="field-label">คะแนน</label>
+    <div id="mediaRatingStars" class="rating-stars"></div>
+
+    <label class="field-label">รีวิวส่วนตัว</label>
+    <textarea id="mediaReview" class="text-input" rows="3" placeholder="คิดเห็นยังไงกับเรื่องนี้…"></textarea>
+
+    <label class="field-label">วันที่ดู/อ่าน (ถ้ามี)</label>
+    <input id="mediaWatchedDate" class="text-input" type="date">
+
+    <div id="mediaErr" class="modal-err"></div>
+
+    <div class="modal-actions modal-actions-3">
+      <button id="mediaDelete" class="btn btn-ghost hidden" type="button">ลบ</button>
+      <button id="mediaCancel" class="btn btn-ghost" type="button">ยกเลิก</button>
+      <button id="mediaSave" class="btn" type="button">บันทึก</button>
     </div>
   </div>
 </div>

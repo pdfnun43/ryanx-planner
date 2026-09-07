@@ -152,6 +152,138 @@
     loadMoodWeek();
   }
 
+  /* ================= MEDIA COLLECTION ================= */
+  var MEDIA_LIST = [];
+  var MEDIA_EDIT = null;
+  var mediaFilter = { kind: '', q: '' };
+  var MEDIA_KINDS = ['หนังสือ', 'หนัง', 'ซีรีส์'];
+  var mediaRatingValue = 0;
+
+  function bindMedia() {
+    var searchTimer = null;
+    $('mediaSearch').addEventListener('input', function (e) {
+      mediaFilter.q = e.target.value.trim();
+      if (searchTimer) clearTimeout(searchTimer);
+      searchTimer = setTimeout(loadMedia, 250);
+    });
+    $('mediaKindChips').addEventListener('click', function (e) {
+      var k = e.target.getAttribute('data-kind');
+      if (k === null) return;
+      mediaFilter.kind = k;
+      renderMediaKindChips();
+      loadMedia();
+    });
+    $('addMediaBtn').addEventListener('click', function () { openMediaModal(null); });
+    renderMediaRatingStars();
+    $('mediaCancel').addEventListener('click', function () { hide('mediaOverlay'); });
+    $('mediaOverlay').addEventListener('click', function (e) { if (e.target === $('mediaOverlay')) hide('mediaOverlay'); });
+    $('mediaSave').addEventListener('click', submitMediaSave);
+    $('mediaDelete').addEventListener('click', function () {
+      if (!MEDIA_EDIT) return;
+      if (!window.confirm('ลบรายการนี้ใช่ไหม?')) return;
+      call('delete_media', { p_id: MEDIA_EDIT.id }).then(function () {
+        hide('mediaOverlay');
+        toast('ลบแล้ว');
+        loadMedia();
+      }).catch(function (err) { toast(errMsg(err), true); });
+    });
+  }
+
+  function renderMediaKindChips() {
+    var wrap = $('mediaKindChips');
+    var chips = [['', 'ทั้งหมด']].concat(MEDIA_KINDS.map(function (k) { return [k, k]; }));
+    wrap.innerHTML = chips.map(function (c) {
+      return '<button type="button" class="chip' + (mediaFilter.kind === c[0] ? ' on' : '') + '" data-kind="' + esc(c[0]) + '">' + esc(c[1]) + '</button>';
+    }).join('');
+  }
+
+  function loadMedia() {
+    call('get_media', { p_kind: mediaFilter.kind || null, p_q: mediaFilter.q || '' }).then(function (res) {
+      MEDIA_LIST = res || [];
+      renderMediaList();
+    }).catch(function (err) { toast(errMsg(err), true); });
+  }
+
+  function renderMediaList() {
+    var wrap = $('mediaList');
+    if (!MEDIA_LIST.length) {
+      wrap.innerHTML = '<p class="checklist-empty">ยังไม่มีรายการ — กด "+ เพิ่ม"</p>';
+      return;
+    }
+    wrap.innerHTML = MEDIA_LIST.map(function (m) {
+      var stars = m.rating ? '★'.repeat(m.rating) + '☆'.repeat(5 - m.rating) : '';
+      return '<div class="media-card" data-id="' + esc(m.id) + '">' +
+        '<div class="media-card-title">' + esc(m.title) + '</div>' +
+        '<div class="media-card-tags">' +
+          (m.kind ? '<span class="media-tag">' + esc(m.kind) + '</span>' : '') +
+          (m.genre ? '<span class="media-tag genre">' + esc(m.genre) + '</span>' : '') +
+        '</div>' +
+        (stars ? '<div class="media-card-stars">' + stars + '</div>' : '') +
+        (m.review ? '<div class="media-card-review">' + esc(m.review) + '</div>' : '') +
+        '</div>';
+    }).join('');
+    wrap.querySelectorAll('.media-card').forEach(function (card) {
+      card.addEventListener('click', function () {
+        var id = card.getAttribute('data-id');
+        var item = MEDIA_LIST.filter(function (x) { return x.id === id; })[0];
+        if (item) openMediaModal(item);
+      });
+    });
+  }
+
+  function renderMediaRatingStars() {
+    var wrap = $('mediaRatingStars');
+    var html = '';
+    for (var i = 1; i <= 5; i++) {
+      html += '<span class="rating-star' + (i <= mediaRatingValue ? ' on' : '') + '" data-v="' + i + '">★</span>';
+    }
+    wrap.innerHTML = html;
+    wrap.querySelectorAll('.rating-star').forEach(function (star) {
+      star.addEventListener('click', function () {
+        var v = Number(star.getAttribute('data-v'));
+        mediaRatingValue = mediaRatingValue === v ? 0 : v;
+        renderMediaRatingStars();
+      });
+    });
+  }
+
+  function openMediaModal(item) {
+    MEDIA_EDIT = item || null;
+    $('mediaModalTitle').textContent = item ? 'แก้ไขรายการ' : 'เพิ่มหนังสือ/หนัง';
+    $('mediaTitle').value = item ? item.title : '';
+    $('mediaKind').value = item ? (item.kind || '') : '';
+    $('mediaGenre').value = item ? (item.genre || '') : '';
+    $('mediaReview').value = item ? (item.review || '') : '';
+    $('mediaWatchedDate').value = item ? (item.watchedDate || '') : '';
+    mediaRatingValue = item ? (item.rating || 0) : 0;
+    renderMediaRatingStars();
+    $('mediaErr').textContent = '';
+    $('mediaDelete').classList.toggle('hidden', !item);
+    show('mediaOverlay');
+    setTimeout(function () { $('mediaTitle').focus(); }, 30);
+  }
+
+  function submitMediaSave() {
+    var title = $('mediaTitle').value.trim();
+    if (!title) { $('mediaErr').textContent = 'กรุณาใส่ชื่อเรื่อง'; return; }
+    var payload = {
+      p_id: MEDIA_EDIT ? MEDIA_EDIT.id : null,
+      p_title: title,
+      p_kind: $('mediaKind').value.trim(),
+      p_genre: $('mediaGenre').value.trim(),
+      p_rating: mediaRatingValue || null,
+      p_review: $('mediaReview').value.trim(),
+      p_watched_date: $('mediaWatchedDate').value || null
+    };
+    $('mediaSave').disabled = true;
+    call('save_media', payload).then(function () {
+      $('mediaSave').disabled = false;
+      hide('mediaOverlay');
+      toast('บันทึกแล้ว');
+      loadMedia();
+    }).catch(function (err) { $('mediaSave').disabled = false; $('mediaErr').textContent = errMsg(err); });
+  }
+
   /* ================= OVERALL PROGRESS (POINTS) ================= */
   var POINT_TIERS = [0, 200, 800, 2000, 5000, 12000, 30000, 60000];
   var POINT_LEVEL_NAMES = ['เพิ่งเริ่มต้น', 'กำลังไปได้ดี', 'ทำได้เก่งมาก', 'สุดยอดไปเลย', 'ยอดฝีมือ', 'มืออาชีพ', 'ตำนาน', 'เทพเจ้าแห่งวินัย'];
@@ -322,6 +454,8 @@
     bindEventDetailModal();
     bindChallenge();
     bindMood();
+    bindMedia();
+    renderMediaKindChips();
     bindLogout();
     renderQuoteOfDay();
     $('settingsBtn').addEventListener('click', openSettingsModal);
@@ -360,7 +494,7 @@
     var tabs = document.querySelectorAll('.view-switch-btn');
     for (var i = 0; i < tabs.length; i++) tabs[i].classList.toggle('on', tabs[i].getAttribute('data-view') === v);
     $('headerStats').classList.toggle('hidden', v !== 'daily');
-    hide('dailyView'); hide('weeklyView'); hide('contentView'); hide('challengeView'); hide('moodView');
+    hide('dailyView'); hide('weeklyView'); hide('contentView'); hide('challengeView'); hide('moodView'); hide('collectionView');
     if (v === 'daily') { show('dailyView'); loadDaily(D ? D.date : todayKeyClient()); }
     else if (v === 'weekly') { show('weeklyView'); loadWeek(W ? W.weekStart : mondayOf(D ? D.date : todayKeyClient())); }
     else if (v === 'content') {
@@ -373,6 +507,9 @@
     } else if (v === 'mood') {
       show('moodView');
       loadMoodView();
+    } else if (v === 'collection') {
+      show('collectionView');
+      loadMedia();
     }
     window.scrollTo(0, 0);
   }
@@ -1016,12 +1153,37 @@
   }
 
   /* ================= CHALLENGES ================= */
+  function coinInfo(c) {
+    var size = Number(c.milestoneSize) || 1;
+    var total = Number(c.totalAmount) || 0;
+    var coins = Math.floor(total / size);
+    var intoNext = total - coins * size;
+    var pct = Math.round((intoNext / size) * 100);
+    return { coins: coins, intoNext: intoNext, size: size, pct: pct };
+  }
+
+  function logChallengeAmount(id, delta, afterFn) {
+    call('log_challenge_amount', { p_challenge_id: id, p_date: todayKeyClient(), p_delta: delta }).then(function () {
+      loadPoints();
+      if (afterFn) afterFn();
+    }).catch(function (err) { toast(errMsg(err), true); });
+  }
+
   function renderDailyChallenges(list) {
     var card = $('dailyChallengeCard');
     var wrap = $('dailyChallengeList');
     if (!list.length) { card.classList.add('hidden'); return; }
     card.classList.remove('hidden');
     wrap.innerHTML = list.map(function (c) {
+      if (c.type === 'counter') {
+        var info = coinInfo(c);
+        return '<div class="daily-challenge-row challenge-counter-row" data-id="' + esc(c.id) + '">' +
+          '<button type="button" class="challenge-amount-btn" data-id="' + esc(c.id) + '" data-delta="-1">−</button>' +
+          '<span class="daily-challenge-name">' + esc(c.name) + '</span>' +
+          '<span class="daily-challenge-progress">วันนี้ ' + fmt(c.todayAmount) + ' ' + esc(c.unitLabel || '') + ' · 🪙 ' + info.coins + '</span>' +
+          '<button type="button" class="challenge-amount-btn" data-id="' + esc(c.id) + '" data-delta="1">+</button>' +
+          '</div>';
+      }
       return '<div class="daily-challenge-row" data-id="' + esc(c.id) + '">' +
         '<button type="button" class="challenge-check' + (c.checkedToday ? ' checked' : '') + '" data-id="' + esc(c.id) + '">' + (c.checkedToday ? '✓' : '') + '</button>' +
         '<span class="daily-challenge-name">' + esc(c.name) + '</span>' +
@@ -1043,25 +1205,59 @@
         });
       });
     });
+    wrap.querySelectorAll('.challenge-amount-btn').forEach(function (btn) {
+      btn.addEventListener('click', function () {
+        var id = btn.getAttribute('data-id');
+        var delta = Number(btn.getAttribute('data-delta'));
+        logChallengeAmount(id, delta, function () { if (D) loadDaily(D.date); });
+      });
+    });
   }
+
+  var CHALLENGE_TYPE = 'daily';
 
   function bindChallenge() {
     $('addChallengeBtn').addEventListener('click', function () {
       $('challengeName').value = '';
       $('challengeDuration').value = 30;
+      $('challengeUnitLabel').value = '';
+      $('challengeMilestone').value = 10;
       $('challengeErr').textContent = '';
+      CHALLENGE_TYPE = 'daily';
+      $('challengeTypeChips').querySelectorAll('.chip').forEach(function (c) { c.classList.toggle('on', c.getAttribute('data-type') === 'daily'); });
+      $('challengeDailyFields').classList.remove('hidden');
+      $('challengeCounterFields').classList.add('hidden');
       show('challengeOverlay');
       setTimeout(function () { $('challengeName').focus(); }, 30);
+    });
+    $('challengeTypeChips').addEventListener('click', function (e) {
+      var t = e.target.getAttribute('data-type');
+      if (!t) return;
+      CHALLENGE_TYPE = t;
+      $('challengeTypeChips').querySelectorAll('.chip').forEach(function (c) { c.classList.toggle('on', c.getAttribute('data-type') === t); });
+      $('challengeDailyFields').classList.toggle('hidden', t !== 'daily');
+      $('challengeCounterFields').classList.toggle('hidden', t !== 'counter');
     });
     $('challengeCancel').addEventListener('click', function () { hide('challengeOverlay'); });
     $('challengeOverlay').addEventListener('click', function (e) { if (e.target === $('challengeOverlay')) hide('challengeOverlay'); });
     $('challengeSave').addEventListener('click', function () {
       var name = $('challengeName').value.trim();
-      var duration = Number($('challengeDuration').value) || 0;
       if (!name) { $('challengeErr').textContent = 'กรุณาใส่ชื่อ Challenge'; return; }
-      if (duration < 1) { $('challengeErr').textContent = 'ระยะเวลาต้องมากกว่า 0 วัน'; return; }
+      var params = { p_name: name, p_type: CHALLENGE_TYPE };
+      if (CHALLENGE_TYPE === 'daily') {
+        var duration = Number($('challengeDuration').value) || 0;
+        if (duration < 1) { $('challengeErr').textContent = 'ระยะเวลาต้องมากกว่า 0 วัน'; return; }
+        params.p_duration_days = duration;
+      } else {
+        var unit = $('challengeUnitLabel').value.trim();
+        var milestone = Number($('challengeMilestone').value) || 0;
+        if (!unit) { $('challengeErr').textContent = 'กรุณาใส่หน่วยนับ'; return; }
+        if (milestone < 1) { $('challengeErr').textContent = 'จำนวนต่อเหรียญต้องมากกว่า 0'; return; }
+        params.p_unit_label = unit;
+        params.p_milestone_size = milestone;
+      }
       $('challengeSave').disabled = true;
-      call('create_challenge', { p_name: name, p_duration_days: duration }).then(function () {
+      call('create_challenge', params).then(function () {
         $('challengeSave').disabled = false;
         hide('challengeOverlay');
         toast('สร้าง Challenge แล้ว');
@@ -1085,6 +1281,24 @@
       activeWrap.innerHTML = '<p class="checklist-empty">ยังไม่มี Challenge ที่กำลังทำ — กด "+ สร้าง Challenge"</p>';
     } else {
       activeWrap.innerHTML = CHALLENGES.active.map(function (c) {
+        if (c.type === 'counter') {
+          var info = coinInfo(c);
+          return '<div class="challenge-card" data-id="' + esc(c.id) + '">' +
+            '<div class="challenge-card-top">' +
+              '<span class="challenge-coins">🪙 ' + info.coins + '</span>' +
+              '<span class="challenge-name">' + esc(c.name) + '</span>' +
+              '<span class="challenge-progress">สะสมทั้งหมด ' + fmt(c.totalAmount) + ' ' + esc(c.unitLabel || '') + '</span>' +
+              '<button type="button" class="challenge-del" data-id="' + esc(c.id) + '" title="ลบ">✕</button>' +
+            '</div>' +
+            '<div class="challenge-bar-track"><div class="challenge-bar-fill" style="width:' + info.pct + '%"></div></div>' +
+            '<p class="muted small-note" style="margin:0;">อีก ' + fmt(info.size - info.intoNext) + ' ' + esc(c.unitLabel || '') + ' ถึงเหรียญถัดไป</p>' +
+            '<div class="challenge-counter-row">' +
+              '<button type="button" class="challenge-amount-btn" data-id="' + esc(c.id) + '" data-delta="-1">−</button>' +
+              '<span class="daily-challenge-progress">วันนี้: ' + fmt(c.todayAmount) + ' ' + esc(c.unitLabel || '') + '</span>' +
+              '<button type="button" class="challenge-amount-btn" data-id="' + esc(c.id) + '" data-delta="1">+</button>' +
+            '</div>' +
+            '</div>';
+        }
         var checkedToday = (c.checkedDates || []).indexOf(todayK) >= 0;
         var pct = c.durationDays > 0 ? Math.round((c.doneCount / c.durationDays) * 100) : 0;
         var checkedSet = {};
@@ -1119,6 +1333,13 @@
           }).catch(function (err) { toast(errMsg(err), true); });
         });
       });
+      activeWrap.querySelectorAll('.challenge-amount-btn').forEach(function (btn) {
+        btn.addEventListener('click', function () {
+          var id = btn.getAttribute('data-id');
+          var delta = Number(btn.getAttribute('data-delta'));
+          logChallengeAmount(id, delta, function () { loadChallenges(); if (D) loadDaily(D.date); });
+        });
+      });
       activeWrap.querySelectorAll('.challenge-del').forEach(function (btn) {
         btn.addEventListener('click', function () {
           if (!window.confirm('ลบ Challenge นี้ใช่ไหม?')) return;
@@ -1135,9 +1356,12 @@
       pastWrap.innerHTML = '<p class="checklist-empty">ยังไม่มีประวัติ Challenge</p>';
     } else {
       pastWrap.innerHTML = CHALLENGES.past.map(function (c) {
+        var progressText = c.type === 'counter'
+          ? 'สะสมได้ ' + fmt(c.totalAmount) + ' ' + esc(c.unitLabel || '') + ' · 🪙 ' + coinInfo(c).coins
+          : c.doneCount + '/' + c.durationDays + ' วันที่ทำแล้ว';
         return '<div class="challenge-past-row">' +
           '<span class="challenge-past-name">' + esc(c.name) + '</span>' +
-          '<span class="challenge-progress">' + c.doneCount + '/' + c.durationDays + ' วันที่ทำแล้ว</span>' +
+          '<span class="challenge-progress">' + progressText + '</span>' +
           '</div>';
       }).join('');
     }
