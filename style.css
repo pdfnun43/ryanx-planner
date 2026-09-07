@@ -91,37 +91,7 @@ body{
 
 /* ===== app shell: sidebar + main column ===== */
 #app{display:flex;align-items:flex-start;max-width:1220px;margin:0 auto;min-height:100vh;}
-.sidebar{
-  width:72px;flex:none;background:var(--panel-glass-bg);border:1px solid var(--panel-glass-border);
-  -webkit-backdrop-filter:blur(var(--glass-blur));backdrop-filter:blur(var(--glass-blur));
-  border-radius:24px;margin:16px 0 16px 16px;box-shadow:var(--glass-shadow);
-  display:flex;flex-direction:column;align-items:center;padding:20px 0;gap:8px;position:sticky;top:16px;
-}
-.sidebar-logo{
-  width:38px;height:38px;border-radius:11px;background:rgba(255,255,255,.14);color:var(--panel-text);
-  font-family:'Kanit',sans-serif;font-weight:700;font-size:14px;display:flex;align-items:center;
-  justify-content:center;margin-bottom:12px;flex:none;
-}
-.sidebar-nav{display:flex;flex-direction:column;gap:6px;}
-.sidebar-spacer{flex:1;}
-.sidebar-btn{
-  width:42px;height:42px;border-radius:13px;border:0;background:transparent;color:rgba(243,241,235,.55);
-  font-size:18px;cursor:pointer;display:flex;align-items:center;justify-content:center;flex:none;
-}
-.sidebar-btn.on{background:rgba(255,255,255,.16);color:var(--panel-text);}
-.sidebar-btn:hover{color:var(--panel-text);}
-
 .main-col{flex:1;min-width:0;padding:16px 18px 70px;}
-
-@media (max-width:700px){
-  #app{flex-direction:column;}
-  .sidebar{
-    width:auto;flex-direction:row;margin:16px 16px 0 16px;padding:10px 14px;
-    position:static;top:auto;
-  }
-  .sidebar-logo{margin-bottom:0;}
-  .sidebar-nav{flex-direction:row;}
-}
 
 /* ===== header panel ===== */
 .header-panel{
@@ -137,7 +107,13 @@ body{
 .app-title-inv{font-family:'Kanit',sans-serif;font-weight:600;font-size:25px;margin:0;color:var(--panel-text);}
 .header-top-right{display:flex;align-items:center;gap:10px;flex-wrap:wrap;}
 .quick-event-btn{white-space:nowrap;}
+.header-icon-btn{
+  width:38px;height:38px;flex:none;border-radius:11px;border:0;background:rgba(255,255,255,.14);
+  color:var(--panel-text);font-size:17px;cursor:pointer;display:flex;align-items:center;justify-content:center;
+}
+.header-icon-btn:hover{background:rgba(255,255,255,.24);}
 .viewtabs-pill{display:flex;gap:4px;background:rgba(0,0,0,.16);padding:5px;border-radius:999px;flex-wrap:wrap;}
+.viewtabs-pill-wide{margin-top:16px;}
 .vtab-pill{
   border:0;background:transparent;color:rgba(243,241,235,.7);font-family:'Kanit',sans-serif;
   font-size:13.5px;font-weight:600;padding:9px 16px;border-radius:999px;cursor:pointer;
@@ -475,9 +451,9 @@ body{
 .challenge-past-row:last-child{border-bottom:0;}
 .challenge-past-name{flex:1;color:var(--ink-soft);}
 .daily-challenge-list{display:flex;flex-direction:column;gap:8px;}
-.daily-challenge-row{display:flex;align-items:center;gap:10px;padding:6px 0;}
-.daily-challenge-name{flex:1;font-size:13.5px;color:var(--ink);}
-.daily-challenge-progress{font-family:'Kanit',sans-serif;font-size:11.5px;color:var(--ink-soft);}
+.daily-challenge-row{display:flex;flex-wrap:wrap;align-items:center;gap:4px 10px;padding:6px 0;}
+.daily-challenge-name{flex:1;min-width:0;font-size:13.5px;color:var(--ink);}
+.daily-challenge-progress{font-family:'Kanit',sans-serif;font-size:11.5px;color:var(--ink-soft);flex-basis:100%;order:5;padding-left:44px;}
 
 /* ===== toast ===== */
 .toast{
@@ -575,7 +551,8 @@ textarea.text-input{resize:vertical;line-height:1.6;}
 
 /* ===== challenge streak dots ===== */
 .challenge-card{align-items:flex-start;flex-direction:column;gap:10px;}
-.challenge-card-top{display:flex;align-items:center;gap:12px;width:100%;}
+.challenge-card-top{display:flex;flex-wrap:wrap;align-items:center;gap:6px 12px;width:100%;}
+.challenge-card-top .challenge-progress{flex-basis:100%;order:3;}
 .challenge-bar-track{width:100%;height:8px;border-radius:999px;background:rgba(255,255,255,.6);overflow:hidden;}
 .challenge-bar-fill{height:100%;border-radius:999px;background:linear-gradient(90deg, var(--sage), var(--panel));}
 .challenge-dots{display:flex;flex-wrap:wrap;gap:4px;width:100%;}

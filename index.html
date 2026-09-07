@@ -35,20 +35,6 @@
 
 <!-- ===== แอปหลัก ===== -->
 <div id="app" class="hidden">
-  <aside class="sidebar">
-    <div class="sidebar-logo">PF</div>
-    <nav class="sidebar-nav">
-      <button class="sidebar-btn view-switch-btn on" data-view="daily" type="button" title="รายวัน">◐</button>
-      <button class="sidebar-btn view-switch-btn" data-view="weekly" type="button" title="รายสัปดาห์">▦</button>
-      <button class="sidebar-btn view-switch-btn" data-view="content" type="button" title="คอนเทนต์">✎</button>
-      <button class="sidebar-btn view-switch-btn" data-view="challenge" type="button" title="ท้าทาย">◆</button>
-      <button class="sidebar-btn view-switch-btn" data-view="mood" type="button" title="อารมณ์">☺</button>
-      <button class="sidebar-btn view-switch-btn" data-view="collection" type="button" title="คอลเลกชัน">📚</button>
-    </nav>
-    <div class="sidebar-spacer"></div>
-    <button id="settingsBtn" class="sidebar-btn" type="button" title="แก้ไขรายการ">⚙</button>
-  </aside>
-
   <div class="main-col">
     <header class="header-panel">
       <div class="header-top">
@@ -57,16 +43,17 @@
           <h1 class="app-title-inv">RYAN'X PLANNER</h1>
         </div>
         <div class="header-top-right">
-          <div class="viewtabs-pill">
-            <button class="vtab-pill view-switch-btn on" data-view="daily" type="button">รายวัน</button>
-            <button class="vtab-pill view-switch-btn" data-view="weekly" type="button">รายสัปดาห์</button>
-            <button class="vtab-pill view-switch-btn" data-view="content" type="button">คอนเทนต์</button>
-            <button class="vtab-pill view-switch-btn" data-view="challenge" type="button">ท้าทาย</button>
-            <button class="vtab-pill view-switch-btn" data-view="mood" type="button">อารมณ์</button>
-            <button class="vtab-pill view-switch-btn" data-view="collection" type="button">คอลเลกชัน</button>
-          </div>
           <button id="quickEventBtn" class="btn small quick-event-btn" type="button">+ กิจกรรมด่วน</button>
+          <button id="settingsBtn" class="header-icon-btn" type="button" title="แก้ไขรายการ">⚙</button>
         </div>
+      </div>
+      <div class="viewtabs-pill viewtabs-pill-wide">
+        <button class="vtab-pill view-switch-btn on" data-view="daily" type="button">รายวัน</button>
+        <button class="vtab-pill view-switch-btn" data-view="weekly" type="button">รายสัปดาห์</button>
+        <button class="vtab-pill view-switch-btn" data-view="content" type="button">คอนเทนต์</button>
+        <button class="vtab-pill view-switch-btn" data-view="challenge" type="button">ท้าทาย</button>
+        <button class="vtab-pill view-switch-btn" data-view="mood" type="button">อารมณ์</button>
+        <button class="vtab-pill view-switch-btn" data-view="collection" type="button">คอลเลกชัน</button>
       </div>
       <p id="quoteOfDay" class="quote-of-day"></p>
       <div id="headerStats" class="header-stats">
